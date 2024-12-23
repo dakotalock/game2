@@ -1,9 +1,16 @@
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
 
-// Vite configuration
 export default defineConfig({
-  plugins: [react()],
-  root: './',  // Ensure the root is set to the project root (if applicable)
-  base: '/',   // Ensure the base path is correctly set for deployment (change if necessary)
+  root: './', // Ensure Vite knows your root directory
+  resolve: {
+    alias: {
+      // This ensures that the src folder is properly resolved
+      '@': '/src',
+    },
+  },
+  build: {
+    rollupOptions: {
+      input: '/index.html', // Specify the entry point explicitly
+    },
+  },
 });
