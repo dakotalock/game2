@@ -1,16 +1,23 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import path from 'path'
 
+// https://vitejs.dev/config/
 export default defineConfig({
-  root: './', // Ensure Vite knows your root directory
+  plugins: [react()],
   resolve: {
     alias: {
-      // This ensures that the src folder is properly resolved
-      '@': '/src',
-    },
+      '@': path.resolve(__dirname, './src')
+    }
   },
   build: {
+    outDir: 'dist',
+    sourcemap: true,
     rollupOptions: {
-      input: '/index.html', // Specify the entry point explicitly
-    },
+      input: {
+        main: path.resolve(__dirname, 'index.html')
+      }
+    }
   },
-});
+  base: './' // This is important for Netlify deployment
+})
