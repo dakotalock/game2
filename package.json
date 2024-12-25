@@ -1,14 +1,14 @@
 {
   "name": "target-practice-game",
   "version": "1.0.0",
-  "description": "A simple target practice game.",
+  "description": "A simple and interactive target practice game built with React and Vite.",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
-  "author": "",
+  "author": "Your Name",
   "license": "ISC",
   "dependencies": {
     "react": "^18.2.0",
@@ -24,5 +24,8 @@
     "tailwindcss": "^3.4.0",
     "typescript": "^5.2.2",
     "vite": "^4.5.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
   }
 }
