@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, MouseEvent } from 'react';
 import AudioPlayer from 'react-h5-audio-player';
 import 'react-h5-audio-player/lib/styles.css';
-import './App.css';
 
 const App: React.FC = () => {
   const [score, setScore] = useState<number>(0);
@@ -95,7 +94,7 @@ const App: React.FC = () => {
   const spawnPowerUp = () => {
     const x = Math.random() * (gameWidth - targetSize);
     const y = Math.random() * (gameHeight - targetSize);
-    const type: 'extra-life' | 'time-freeze' = Math.random() < 0.5 ? 'extra-life' : 'time-freeze'; // Explicitly type `type`
+    const type: 'extra-life' | 'time-freeze' = Math.random() < 0.5 ? 'extra-life' : 'time-freeze';
     const newPowerUp = {
       x,
       y,
