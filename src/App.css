@@ -18,17 +18,17 @@ body {
 
 /* Game arena container styling */
 .game-arena {
-  display: flex !important; /* Flexbox for child alignment */
-  justify-content: center !important; /* Center child content */
-  align-items: center !important; /* Center child content */
-  width: 80vw !important; /* Responsive width */
-  height: 80vh !important; /* Responsive height */
-  background-color: #1a1f2e !important; /* Match overall background */
-  border: 4px solid yellow !important; /* Debugging border */
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.2) !important; /* Glow effect */
-  position: relative !important; /* Relative for positioning children */
-  margin: auto !important; /* Centering in flex container */
-  border-radius: 1rem !important; /* Rounded corners */
+  display: flex; /* Flexbox for child alignment */
+  justify-content: center; /* Center child content */
+  align-items: center; /* Center child content */
+  width: 80vw; /* Responsive width */
+  height: 80vh; /* Responsive height */
+  background-color: #1a1f2e; /* Match overall background */
+  border: 4px solid yellow; /* Debugging border */
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); /* Glow effect */
+  position: relative; /* Relative for positioning children */
+  margin: auto; /* Centering in flex container */
+  border-radius: 1rem; /* Rounded corners */
 }
 
 /* Game target styling (circles) */
@@ -96,13 +96,6 @@ div.relative.bg-gray-800.border-4.border-yellow-500 {
   text-align: center !important;
   margin-top: 1rem !important;
   flex-direction: column !important; /* Stack text and button vertically */
-}
-
-/* Ensure all elements with the class 'circle' are perfectly circular */
-.circle {
-  border-radius: 50% !important;
-  width: 100px !important;
-  height: 100px !important;
 }
 
 /* Responsive handling */
