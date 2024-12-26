@@ -85,6 +85,7 @@ div.relative.bg-gray-800.border-4.border-yellow-500 {
   background-color: #1a1f2e !important;
   box-shadow: 0 0 20px rgba(255, 215, 0, 0.2) !important;
   margin: auto;
+  border-radius: 1rem; /* Ensure rounded corners */
 }
 
 /* Center text and Start Game button */
@@ -94,6 +95,16 @@ div.relative.bg-gray-800.border-4.border-yellow-500 {
   align-items: center;
   text-align: center;
   margin-top: 1rem;
+  flex-direction: column; /* Stack text and button vertically */
+}
+
+.start-game-button {
+  /* Additional styling for the button if needed */
+}
+
+/* Ensure all elements with the class 'circle' are perfectly circular */
+.circle {
+  border-radius: 50% !important;
 }
 
 /* Responsive handling */
@@ -102,12 +113,6 @@ div.relative.bg-gray-800.border-4.border-yellow-500 {
     width: 90vw; /* Adjust for smaller screens */
     height: 70vh;
   }
-
-  .circle {
-    width: 80px; /* Smaller circles */
-    height: 80px;
-  }
-}
 
   .circle {
     width: 80px; /* Smaller circles */
