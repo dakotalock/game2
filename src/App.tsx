@@ -214,7 +214,8 @@ const Game: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 p-4">
-      <h1 className="text-5xl font-extrabold mb-8 text-white">Target Practice</h1>
+      <h1 className="text-5xl font-extrabold mb-8 text-white">Gabe's Game</h1>
+      <h2 className="text-xl text-gray-400 mt-4">Created by Dakota Lock for Gabriel Martinez Valdez</h2>
 
       {/* Invisible Audio Player */}
       <div className="hidden">
