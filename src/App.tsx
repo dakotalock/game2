@@ -94,7 +94,7 @@ const App: React.FC = () => {
   const spawnPowerUp = () => {
     const x = Math.random() * (gameWidth - targetSize);
     const y = Math.random() * (gameHeight - targetSize);
-    const type = Math.random() < 0.5 ? 'extra-life' : 'time-freeze';
+    const type: 'extra-life' | 'time-freeze' = Math.random() < 0.5 ? 'extra-life' : 'time-freeze'; // Explicitly type `type`
     const newPowerUp = {
       x,
       y,
