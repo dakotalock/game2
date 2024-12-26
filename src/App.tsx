@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, MouseEvent } from 'react';
 import AudioPlayer from 'react-h5-audio-player';
-import 'react-h5-audio-player/lib/styles.css'
+import 'react-h5-audio-player/lib/styles.css';
 
 interface Target {
   x: number;
@@ -41,6 +41,16 @@ const Game: React.FC = () => {
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   const targetRotationSpeed: number = 2;
+
+  // Inline random color generator
+  const getRandomColor = (): string => {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+  };
 
   const handleTargetClick = (id: number) => {
     if (gameOver) return;
@@ -83,7 +93,7 @@ const Game: React.FC = () => {
     const y = Math.random() * (gameHeight - targetSize);
     const dx = (Math.random() - 0.5) * targetSpeed;
     const dy = (Math.random() - 0.5) * targetSpeed;
-    const color = randomColor();
+    const color = getRandomColor(); // Use inline random color generator
     const newTarget: Target = {
       x,
       y,
