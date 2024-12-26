@@ -10,38 +10,46 @@ body {
   display: none !important;
 }
 
-/* Center the game area */
-.flex.flex-col.items-center.justify-center.min-h-screen {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-/* Game area */
+/* Ensure relative positioning isn't being overridden */
 div.relative.bg-gray-800.border-4.border-yellow-500 {
   position: relative !important;
   background-color: #1a1f2e !important;
   box-shadow: 0 0 20px rgba(255, 215, 0, 0.2) !important;
-  margin: 0 auto !important; /* Center horizontally */
 }
 
-/* Make targets circular */
-.absolute.rounded-full {
-  border-radius: 50% !important;
+/* Also ensure absolute positioning for the targets */
+.absolute {
+  position: absolute !important;
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 @keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 @keyframes ping {
-  0% { transform: scale(1); opacity: 1; }
-  100% { transform: scale(2); opacity: 0; }
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
 }
