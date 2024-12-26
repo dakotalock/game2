@@ -25,6 +25,8 @@ body {
   overflow: hidden;
   cursor: crosshair;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  width: 600px; /* Set the game area width */
+  height: 400px; /* Set the game area height */
 }
 
 /* Target styles */
