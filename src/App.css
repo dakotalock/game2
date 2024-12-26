@@ -138,12 +138,3 @@ body {
 .button-primary:hover {
   background-color: #e67e22; /* Darker yellow */
 }
-
-.button-secondary {
-  background-color: #4b5563; /* Gray */
-  color: white;
-}
-
-.button-secondary:hover {
-  background-color: #374151; /* Darker gray */
-}
