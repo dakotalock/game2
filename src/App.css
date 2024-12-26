@@ -2,13 +2,13 @@
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  background-color: #1a1f2e; /* Match background to app theme */
+  background-color: #1a1f2e;
   color: white;
-  display: flex; /* Flexbox to center content */
-  justify-content: center; /* Horizontally center content */
-  align-items: center; /* Vertically center content */
-  height: 100vh; /* Full viewport height */
-  flex-direction: column; /* Stack elements vertically */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  flex-direction: column;
 }
 
 /* Ensure the audio player is hidden */
@@ -18,32 +18,27 @@ body {
 
 /* Game arena container styling */
 .game-arena {
-  display: flex; /* Flexbox for child alignment */
-  justify-content: center; /* Center child content */
-  align-items: center; /* Center child content */
-  width: 80vw; /* Responsive width */
-  height: 80vh; /* Responsive height */
-  background-color: #1a1f2e; /* Match overall background */
-  border: 4px solid yellow; /* Debugging border */
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); /* Glow effect */
-  position: relative; /* Relative for positioning children */
-  margin: auto; /* Centering in flex container */
-  border-radius: 1rem; /* Rounded corners */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 80vw;
+  height: 80vh;
+  background-color: #1a1f2e;
+  border: 4px solid yellow;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+  position: relative;
+  margin: auto;
+  border-radius: 1rem;
 }
 
 /* Game target styling (circles) */
 .circle {
-  width: 100px !important; /* Fixed width */
-  height: 100px !important; /* Fixed height */
-  border-radius: 50% !important; /* Ensures circular shape */
-  background-color: yellow !important; /* Test background color */
-  animation: pulse 2s infinite !important; /* Pulse effect */
-  position: absolute !important; /* Positioned inside the arena */
-}
-
-/* Absolute positioning for targets */
-.absolute {
-  position: absolute !important;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background-color: yellow;
+  animation: pulse 2s infinite;
+  position: absolute;
 }
 
 /* Keyframe animations */
@@ -81,32 +76,39 @@ body {
 
 /* Specific overrides to fix game visuals */
 div.relative.bg-gray-800.border-4.border-yellow-500 {
-  position: relative !important;
-  background-color: #1a1f2e !important;
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.2) !important;
-  margin: auto !important;
-  border-radius: 1rem !important; /* Ensure rounded corners */
+  position: relative;
+  background-color: #1a1f2e;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+  margin: auto;
+  border-radius: 1rem;
 }
 
 /* Center text and Start Game button */
 .text-center, .start-game-button {
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  text-align: center !important;
-  margin-top: 1rem !important;
-  flex-direction: column !important; /* Stack text and button vertically */
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.text-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.start-game-button {
+  margin-top: 1rem;
 }
 
 /* Responsive handling */
 @media (max-width: 768px) {
   .game-arena {
-    width: 90vw !important; /* Adjust for smaller screens */
-    height: 70vh !important;
+    width: 90vw;
+    height: 70vh;
   }
 
   .circle {
-    width: 80px !important; /* Smaller circles */
-    height: 80px !important;
+    width: 80px;
+    height: 80px;
   }
 }
