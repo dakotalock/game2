@@ -18,27 +18,27 @@ body {
 
 /* Game arena container styling */
 .game-arena {
-  display: flex; /* Flexbox for child alignment */
-  justify-content: center; /* Center child content */
-  align-items: center; /* Center child content */
-  width: 80vw; /* Responsive width */
-  height: 80vh; /* Responsive height */
-  background-color: #1a1f2e; /* Match overall background */
-  border: 4px solid yellow; /* Debugging border */
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); /* Glow effect */
-  position: relative; /* Relative for positioning children */
-  margin: auto; /* Centering in flex container */
-  border-radius: 1rem; /* Rounded corners */
+  display: flex !important; /* Flexbox for child alignment */
+  justify-content: center !important; /* Center child content */
+  align-items: center !important; /* Center child content */
+  width: 80vw !important; /* Responsive width */
+  height: 80vh !important; /* Responsive height */
+  background-color: #1a1f2e !important; /* Match overall background */
+  border: 4px solid yellow !important; /* Debugging border */
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.2) !important; /* Glow effect */
+  position: relative !important; /* Relative for positioning children */
+  margin: auto !important; /* Centering in flex container */
+  border-radius: 1rem !important; /* Rounded corners */
 }
 
 /* Game target styling (circles) */
 .circle {
-  width: 100px; /* Fixed width */
-  height: 100px; /* Fixed height */
-  border-radius: 50%; /* Ensures circular shape */
-  background-color: yellow; /* Test background color */
-  animation: pulse 2s infinite; /* Pulse effect */
-  position: absolute; /* Positioned inside the arena */
+  width: 100px !important; /* Fixed width */
+  height: 100px !important; /* Fixed height */
+  border-radius: 50% !important; /* Ensures circular shape */
+  background-color: yellow !important; /* Test background color */
+  animation: pulse 2s infinite !important; /* Pulse effect */
+  position: absolute !important; /* Positioned inside the arena */
 }
 
 /* Absolute positioning for targets */
@@ -84,38 +84,36 @@ div.relative.bg-gray-800.border-4.border-yellow-500 {
   position: relative !important;
   background-color: #1a1f2e !important;
   box-shadow: 0 0 20px rgba(255, 215, 0, 0.2) !important;
-  margin: auto;
-  border-radius: 1rem; /* Ensure rounded corners */
+  margin: auto !important;
+  border-radius: 1rem !important; /* Ensure rounded corners */
 }
 
 /* Center text and Start Game button */
 .text-center, .start-game-button {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  margin-top: 1rem;
-  flex-direction: column; /* Stack text and button vertically */
-}
-
-.start-game-button {
-  /* Additional styling for the button if needed */
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  text-align: center !important;
+  margin-top: 1rem !important;
+  flex-direction: column !important; /* Stack text and button vertically */
 }
 
 /* Ensure all elements with the class 'circle' are perfectly circular */
 .circle {
   border-radius: 50% !important;
+  width: 100px !important;
+  height: 100px !important;
 }
 
 /* Responsive handling */
 @media (max-width: 768px) {
   .game-arena {
-    width: 90vw; /* Adjust for smaller screens */
-    height: 70vh;
+    width: 90vw !important; /* Adjust for smaller screens */
+    height: 70vh !important;
   }
 
   .circle {
-    width: 80px; /* Smaller circles */
-    height: 80px;
+    width: 80px !important; /* Smaller circles */
+    height: 80px !important;
   }
 }
