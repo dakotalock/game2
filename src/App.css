@@ -6,20 +6,22 @@ body {
   color: white;
 }
 
-/* Hide the audio player completely */
 .rhap_container {
   display: none !important;
 }
 
-/* Game area - make the selector more specific to override Tailwind */
+/* Ensure relative positioning isn't being overridden */
 div.relative.bg-gray-800.border-4.border-yellow-500 {
+  position: relative !important;
   background-color: #1a1f2e !important;
   box-shadow: 0 0 20px rgba(255, 215, 0, 0.2) !important;
-  width: 600px !important;
-  height: 400px !important;
 }
 
-/* Animations */
+/* Also ensure absolute positioning for the targets */
+.absolute {
+  position: absolute !important;
+}
+
 @keyframes pulse {
   0% {
     transform: scale(1);
@@ -46,6 +48,11 @@ div.relative.bg-gray-800.border-4.border-yellow-500 {
     transform: scale(1);
     opacity: 1;
   }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
   100% {
     transform: scale(2);
     opacity: 0;
