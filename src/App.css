@@ -108,3 +108,9 @@ div.relative.bg-gray-800.border-4.border-yellow-500 {
     height: 80px;
   }
 }
+
+  .circle {
+    width: 80px; /* Smaller circles */
+    height: 80px;
+  }
+}
