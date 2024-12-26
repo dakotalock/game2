@@ -2,7 +2,7 @@
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  background-color: #1a1f2e; /* Updated to match the navy background */
+  background-color: #1a1f2e;
   color: white;
 }
 
@@ -11,14 +11,15 @@ body {
   display: none !important;
 }
 
-/* Update game area background and border */
-.relative.bg-gray-800 {
+/* Game area - make the selector more specific to override Tailwind */
+div.relative.bg-gray-800.border-4.border-yellow-500 {
   background-color: #1a1f2e !important;
-  border: 4px solid #ffd700 !important;
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.2) !important;
+  width: 600px !important;
+  height: 400px !important;
 }
 
-/* Keep your existing animations and other styles */
+/* Animations */
 @keyframes pulse {
   0% {
     transform: scale(1);
