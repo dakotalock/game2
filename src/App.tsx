@@ -2,32 +2,17 @@ import React, { useState, useEffect, useRef, MouseEvent } from 'react';
 import AudioPlayer from 'react-h5-audio-player';
 import 'react-h5-audio-player/lib/styles.css';
 
-interface Target {
-  x: number;
-  y: number;
-  dx: number;
-  dy: number;
-  id: number;
-  color: string;
-  rotation: number;
-}
-
-type PowerUpType = 'extra-life' | 'time-freeze';
-
-interface PowerUp {
-  x: number;
-  y: number;
-  id: number;
-  type: PowerUpType;
-}
-
-const Game: React.FC = () => {
+const App: React.FC = () => {
   const [score, setScore] = useState<number>(0);
   const [lives, setLives] = useState<number>(3);
   const [gameOver, setGameOver] = useState<boolean>(false);
   const [gameStarted, setGameStarted] = useState<boolean>(false);
-  const [targets, setTargets] = useState<Target[]>([]);
-  const [powerUps, setPowerUps] = useState<PowerUp[]>([]);
+  const [targets, setTargets] = useState<
+    { x: number; y: number; dx: number; dy: number; id: number; color: string; rotation: number }[]
+  >([]);
+  const [powerUps, setPowerUps] = useState<
+    { x: number; y: number; id: number; type: 'extra-life' | 'time-freeze' }[]
+  >([]);
   const [combo, setCombo] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const audioPlayerRef = useRef<any>(null);
@@ -93,8 +78,8 @@ const Game: React.FC = () => {
     const y = Math.random() * (gameHeight - targetSize);
     const dx = (Math.random() - 0.5) * targetSpeed;
     const dy = (Math.random() - 0.5) * targetSpeed;
-    const color = getRandomColor(); // Use inline random color generator
-    const newTarget: Target = {
+    const color = getRandomColor();
+    const newTarget = {
       x,
       y,
       dx,
@@ -109,8 +94,8 @@ const Game: React.FC = () => {
   const spawnPowerUp = () => {
     const x = Math.random() * (gameWidth - targetSize);
     const y = Math.random() * (gameHeight - targetSize);
-    const type: PowerUpType = Math.random() < 0.5 ? 'extra-life' : 'time-freeze';
-    const newPowerUp: PowerUp = {
+    const type = Math.random() < 0.5 ? 'extra-life' : 'time-freeze';
+    const newPowerUp = {
       x,
       y,
       id: Date.now() + Math.random(),
@@ -149,7 +134,7 @@ const Game: React.FC = () => {
     setPowerUps([]);
     setCombo(0);
     setGameStarted(true);
-    
+
     // Start playing music
     if (audioPlayerRef.current) {
       audioPlayerRef.current.audio.current.play();
@@ -164,7 +149,7 @@ const Game: React.FC = () => {
     setTargets([]);
     setPowerUps([]);
     setCombo(0);
-    
+
     // Stop music
     if (audioPlayerRef.current) {
       audioPlayerRef.current.audio.current.pause();
@@ -330,4 +315,4 @@ const Game: React.FC = () => {
   );
 };
 
-export default Game;
+export default App;
