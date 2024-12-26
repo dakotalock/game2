@@ -8,6 +8,7 @@ body {
   justify-content: center; /* Horizontally center content */
   align-items: center; /* Vertically center content */
   height: 100vh; /* Full viewport height */
+  flex-direction: column; /* Stack elements vertically */
 }
 
 /* Ensure the audio player is hidden */
@@ -27,6 +28,7 @@ body {
   box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); /* Glow effect */
   position: relative; /* Relative for positioning children */
   margin: auto; /* Centering in flex container */
+  border-radius: 1rem; /* Rounded corners */
 }
 
 /* Game target styling (circles) */
@@ -85,6 +87,15 @@ div.relative.bg-gray-800.border-4.border-yellow-500 {
   margin: auto;
 }
 
+/* Center text and Start Game button */
+.text-center, .start-game-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  margin-top: 1rem;
+}
+
 /* Responsive handling */
 @media (max-width: 768px) {
   .game-arena {
@@ -94,12 +105,6 @@ div.relative.bg-gray-800.border-4.border-yellow-500 {
 
   .circle {
     width: 80px; /* Smaller circles */
-    height: 80px;
-  }
-}
-
-  .circle {
-    width: 80px; / Smaller circles */
     height: 80px;
   }
 }
