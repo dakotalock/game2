@@ -8,11 +8,15 @@ body {
   justify-content: center; /* Horizontally center content */
   align-items: center; /* Vertically center content */
   height: 100vh; /* Full viewport height */
+  flex-direction: column; /* Stack items vertically */
 }
 
-/* Ensure the audio player is hidden */
-.rhap_container {
-  display: none !important;
+/* Title styling */
+h1 {
+  font-size: 2rem;
+  margin: 0 0 20px 0; /* Add space below the title */
+  text-align: center; /* Center the text */
+  color: #f1f1f1;
 }
 
 /* Game arena container styling */
@@ -39,11 +43,6 @@ body {
   position: absolute; /* Positioned inside the arena */
 }
 
-/* Absolute positioning for targets */
-.absolute {
-  position: absolute !important;
-}
-
 /* Keyframe animations */
 @keyframes pulse {
   0% {
@@ -57,32 +56,13 @@ body {
   }
 }
 
-@keyframes bounce {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes ping {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(2);
-    opacity: 0;
-  }
-}
-
-/* Specific overrides to fix game visuals */
-div.relative.bg-gray-800.border-4.border-yellow-500 {
-  position: relative !important;
-  background-color: #1a1f2e !important;
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.2) !important;
-  margin: auto;
+/* Scoreboard styling */
+.scoreboard {
+  position: absolute;
+  bottom: 10px; /* Position near the bottom of the arena */
+  left: 10px; /* Position near the left edge */
+  color: #fff;
+  font-size: 1rem;
 }
 
 /* Responsive handling */
@@ -95,5 +75,13 @@ div.relative.bg-gray-800.border-4.border-yellow-500 {
   .circle {
     width: 80px; /* Smaller circles */
     height: 80px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  .scoreboard {
+    font-size: 0.9rem;
   }
 }
