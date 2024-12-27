@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, MouseEvent } from 'react';
 import AudioPlayer from 'react-h5-audio-player';
 import 'react-h5-audio-player/lib/styles.css';
+import 'tailwindcss/tailwind.css';
 import './App.css';
 
 interface Target {
@@ -13,7 +14,7 @@ interface Target {
   rotation: number;
 }
 
-type PowerUpType = 'extra-life' | 'time-freeze';
+type PowerUpType = 'extra-life' | 'time-freeze' | 'double-points';
 
 interface PowerUp {
   x: number;
@@ -39,6 +40,7 @@ const Game: React.FC = () => {
   const targetSpeed: number = 2;
   const targetSpawnInterval: number = 1500;
   const powerUpSpawnInterval: number = 5000;
+  const powerUpDuration: number = 5000; // Power-ups last for 5 seconds
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   const targetRotationSpeed: number = 2;
@@ -87,6 +89,9 @@ const Game: React.FC = () => {
         );
       }, 3000);
     }
+    if (clickedPowerUp.type === 'double-points') {
+      setScore((prevScore) => prevScore + 10); // Bonus points
+    }
   };
 
   const spawnTarget = () => {
@@ -110,7 +115,7 @@ const Game: React.FC = () => {
   const spawnPowerUp = () => {
     const x = Math.random() * (gameWidth - targetSize);
     const y = Math.random() * (gameHeight - targetSize);
-    const type: PowerUpType = Math.random() < 0.5 ? 'extra-life' : 'time-freeze';
+    const type: PowerUpType = Math.random() < 0.33 ? 'extra-life' : Math.random() < 0.5 ? 'time-freeze' : 'double-points';
     const newPowerUp: PowerUp = {
       x,
       y,
@@ -118,6 +123,11 @@ const Game: React.FC = () => {
       type,
     };
     setPowerUps((prevPowerUps) => [...prevPowerUps, newPowerUp]);
+
+    // Remove power-up after a duration
+    setTimeout(() => {
+      setPowerUps((prevPowerUps) => prevPowerUps.filter((powerUp) => powerUp.id !== newPowerUp.id));
+    }, powerUpDuration);
   };
 
   const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
@@ -150,7 +160,7 @@ const Game: React.FC = () => {
     setPowerUps([]);
     setCombo(0);
     setGameStarted(true);
-    
+
     // Start playing music
     if (audioPlayerRef.current) {
       audioPlayerRef.current.audio.current.play();
@@ -165,7 +175,7 @@ const Game: React.FC = () => {
     setTargets([]);
     setPowerUps([]);
     setCombo(0);
-    
+
     // Stop music
     if (audioPlayerRef.current) {
       audioPlayerRef.current.audio.current.pause();
@@ -215,7 +225,7 @@ const Game: React.FC = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 p-4">
       <h1 className="text-5xl font-extrabold mb-8 text-white">Gabe's Game</h1>
-      <h2 className="text-xl text-gray-400 mt-4">Created by Dakota Lock for Gabriel Martinez Valdez</h2>
+      <h2 className="text-xl text-gray-400 mt-4">Created by Dakota Lock for Gabriel</h2>
 
       {/* Invisible Audio Player */}
       <div className="hidden">
@@ -261,7 +271,7 @@ const Game: React.FC = () => {
           <div
             key={powerUp.id}
             className={`absolute rounded-full cursor-pointer flex items-center justify-center text-white font-bold transition-transform duration-100 animate-bounce ${
-              powerUp.type === 'extra-life' ? 'bg-yellow-500' : 'bg-blue-500'
+              powerUp.type === 'extra-life' ? 'bg-yellow-500' : powerUp.type === 'time-freeze' ? 'bg-blue-500' : 'bg-red-500'
             }`}
             style={{
               width: targetSize,
@@ -269,7 +279,7 @@ const Game: React.FC = () => {
               left: powerUp.x,
               top: powerUp.y,
               boxShadow: `0 0 10px ${
-                powerUp.type === 'extra-life' ? 'yellow' : 'blue'
+                powerUp.type === 'extra-life' ? 'yellow' : powerUp.type === 'time-freeze' ? 'blue' : 'red'
               }`,
             }}
             onClick={(e) => {
@@ -277,7 +287,7 @@ const Game: React.FC = () => {
               handlePowerUpClick(powerUp.id);
             }}
           >
-            {powerUp.type === 'extra-life' ? '+' : '❄️'}
+            {powerUp.type === 'extra-life' ? '+' : powerUp.type === 'time-freeze' ? '❄️' : '2x'}
           </div>
         ))}
 
