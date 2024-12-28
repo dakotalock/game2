@@ -245,99 +245,88 @@ const Game: React.FC = () => {
           onPause={() => setIsPlaying(false)}
         />
       </div>
-<div 
-  ref={gameAreaRef} 
-  style={{
-    position: 'relative',
-    backgroundColor: '#1f2937',
-    border: '4px solid #eab308',
-    borderRadius: '0.5rem',
-    overflow: 'hidden',
-    cursor: 'crosshair',
-    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)',
-    width: gameWidth,
-    height: gameHeight
-  }}
-  onMouseMove={handleMouseMove} 
-  onClick={handleGameAreaClick}
->
-  {targets.map((target) => (
-    <div
-      key={target.id}
-      style={{
-        position: 'absolute',
-        width: `${targetSize}px`,
-        height: `${targetSize}px`,
-        left: target.x,
-        top: target.y,
-        backgroundColor: target.color,
-        borderRadius: '50%',
-        cursor: 'pointer',
-        transform: `rotate(${target.rotation}deg)`,
-        boxShadow: `0 0 10px ${target.color}`,
-        transition: 'transform 0.1s',
-        animation: 'pulse 2s infinite'
-      }}
-      onClick={(e) => {
-        e.stopPropagation();
-        handleTargetClick(target.id);
-      }}
-    />
-  ))}
 
-  {powerUps.map((powerUp) => (
-    <div
-      key={powerUp.id}
-      className={`power-up power-up-${powerUp.type}`}
-      style={{
-        position: 'absolute',
-        width: `${targetSize}px`,
-        height: `${targetSize}px`,
-        left: powerUp.x,
-        top: powerUp.y,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: 'white',
-        fontWeight: 'bold',
-        cursor: 'pointer',
-        borderRadius: '50%',
-        animation: 'bounce 1s infinite'
-      }}
-      onClick={(e) => {
-        e.stopPropagation();
-        handlePowerUpClick(powerUp.id);
-      }}
-    >
-      {powerUp.type === 'extra-life' ? '+' :
-       powerUp.type === 'time-freeze' ? '❄️' :
-       powerUp.type === 'double-points' ? '2x' :
-       powerUp.type === 'lightning' ? '⚡️' :
-       powerUp.type === 'lava-shield' ? '🛡️' : '💀'}
-    </div>
-  ))}
+      <div
+        ref={gameAreaRef}
+        style={{
+          position: 'relative',
+          backgroundColor: '#1f2937',
+          border: '4px solid #eab308',
+          borderRadius: '0.5rem',
+          overflow: 'hidden',
+          cursor: 'crosshair',
+          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)',
+          width: gameWidth,
+          height: gameHeight,
+        }}
+        onMouseMove={handleMouseMove}
+        onClick={handleGameAreaClick}
+      >
+        {targets.map((target) => (
+          <div
+            key={target.id}
+            style={{
+              position: 'absolute',
+              width: `${targetSize}px`,
+              height: `${targetSize}px`,
+              left: target.x,
+              top: target.y,
+              backgroundColor: target.color,
+              borderRadius: '50%',
+              cursor: 'pointer',
+              transform: `rotate(${target.rotation}deg)`,
+              boxShadow: `0 0 10px ${target.color}`,
+              transition: 'transform 0.1s',
+              animation: 'pulse 2s infinite',
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleTargetClick(target.id);
+            }}
+          />
+        ))}
 
-  <div
-    style={{
-      position: 'absolute',
-      width: '12px',
-      height: '12px',
-      left: mousePosition.x - 6,
-      top: mousePosition.y - 6,
-      border: '2px solid white',
-      borderRadius: '50%',
-      pointerEvents: 'none'
-    }}
-  />
-</div>
+        {powerUps.map((powerUp) => (
+          <div
+            key={powerUp.id}
+            className={`power-up power-up-${powerUp.type}`}
+            style={{
+              position: 'absolute',
+              width: `${targetSize}px`,
+              height: `${targetSize}px`,
+              left: powerUp.x,
+              top: powerUp.y,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              borderRadius: '50%',
+              animation: 'bounce 1s infinite',
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handlePowerUpClick(powerUp.id);
+            }}
+          >
+            {powerUp.type === 'extra-life' ? '+' :
+             powerUp.type === 'time-freeze' ? '❄️' :
+             powerUp.type === 'double-points' ? '2x' :
+             powerUp.type === 'lightning' ? '⚡️' :
+             powerUp.type === 'lava-shield' ? '🛡️' : '💀'}
+          </div>
+        ))}
 
         <div
-          className="crosshair"
           style={{
-            width: 12,
-            height: 12,
+            position: 'absolute',
+            width: '12px',
+            height: '12px',
             left: mousePosition.x - 6,
             top: mousePosition.y - 6,
+            border: '2px solid white',
+            borderRadius: '50%',
             pointerEvents: 'none',
           }}
         />
