@@ -11,6 +11,7 @@ interface Target {
   id: number;
   color: string;
   rotation: number;
+  spawnTime: number;
 }
 
 type PowerUpType = 'extra-life' | 'time-freeze' | 'double-points' | 'skull' | 'lightning' | 'lava-shield';
@@ -18,20 +19,24 @@ type PowerUpType = 'extra-life' | 'time-freeze' | 'double-points' | 'skull' | 'l
 interface PowerUp {
   x: number;
   y: number;
+  dx: number;
+  dy: number;
   id: number;
   type: PowerUpType;
+  spawnTime: number;
 }
 
 const Game: React.FC = () => {
   const [score, setScore] = useState<number>(0);
-  const [lives, setLives] = useState<number>(5);
+  const [lives, setLives] = useState<number>(0);
   const [gameOver, setGameOver] = useState<boolean>(false);
   const [gameStarted, setGameStarted] = useState<boolean>(false);
   const [targets, setTargets] = useState<Target[]>([]);
   const [powerUps, setPowerUps] = useState<PowerUp[]>([]);
   const [combo, setCombo] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  const [difficulty, setDifficulty] = useState<'easy' | 'normal' | 'hard'>('normal'); // New state for difficulty
+  const [difficulty, setDifficulty] = useState<'easy' | 'normal' | 'hard'>('normal');
+  const [showInstructions, setShowInstructions] = useState<boolean>(false);
   const audioPlayerRef = useRef<any>(null);
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const targetSize: number = 30;
@@ -42,8 +47,17 @@ const Game: React.FC = () => {
   const powerUpSpawnInterval: number = 5000 / 2;
   const powerUpDuration: number = 5000;
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-
   const targetRotationSpeed: number = 2;
+
+  const songs = [
+    { id: 1, name: 'Song 1', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
+    { id: 2, name: 'Song 2', src: 'https://files.freemusicarchive.org/storage-freemusicarchive-org/music/ccCommunity/Chad_Crouch/Arps/Chad_Crouch_-_Algorithms.mp3' },
+    { id: 3, name: 'Song 3', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3' },
+    { id: 4, name: 'Song 4', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3' },
+    { id: 5, name: 'Song 5', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3' },
+  ];
+
+  const [selectedSong, setSelectedSong] = useState(songs[0]);
 
   const getRandomColor = (): string => {
     const letters = '0123456789ABCDEF';
@@ -67,40 +81,54 @@ const Game: React.FC = () => {
     if (!clickedPowerUp) return;
     setPowerUps((prevPowerUps) => prevPowerUps.filter((powerUp) => powerUp.id !== id));
 
-    if (clickedPowerUp.type === 'extra-life') {
-      setLives((prevLives) => prevLives + 1);
-    } else if (clickedPowerUp.type === 'time-freeze') {
-      setCombo(0);
-      setTargets((prevTargets) =>
-        prevTargets.map((target) => ({
-          ...target,
-          dx: 0,
-          dy: 0,
-        }))
-      );
-      setTimeout(() => {
+    switch (clickedPowerUp.type) {
+      case 'extra-life':
+        setLives((prevLives) => prevLives + 1);
+        break;
+      case 'time-freeze':
+        setCombo(0);
         setTargets((prevTargets) =>
           prevTargets.map((target) => ({
             ...target,
-            dx: (Math.random() - 0.5) * targetSpeed,
-            dy: (Math.random() - 0.5) * targetSpeed,
+            dx: 0,
+            dy: 0,
           }))
         );
-      }, 3000);
-    } else if (clickedPowerUp.type === 'double-points') {
-      setScore((prevScore) => prevScore + 10);
-    } else if (clickedPowerUp.type === 'skull') {
-      setLives((prevLives) => Math.max(prevLives - 1, 0));
-    } else if (clickedPowerUp.type === 'lightning') {
-      const pointsToAdd = targets.length;
-      setTargets([]);
-      setScore((prevScore) => prevScore + pointsToAdd);
-    } else if (clickedPowerUp.type === 'lava-shield') {
-      const halfLength = Math.ceil(targets.length / 2);
-      const pointsToAdd = halfLength;
-      setTargets((prevTargets) => prevTargets.slice(halfLength));
-      setScore((prevScore) => prevScore + pointsToAdd);
-      setLives((prevLives) => prevLives + 2);
+        setTimeout(() => {
+          setTargets((prevTargets) =>
+            prevTargets.map((target) => ({
+              ...target,
+              dx: (Math.random() - 0.5) * targetSpeed,
+              dy: (Math.random() - 0.5) * targetSpeed,
+            }))
+          );
+        }, 3000);
+        break;
+      case 'double-points':
+        setScore((prevScore) => prevScore + 10);
+        break;
+      case 'skull':
+        setLives((prevLives) => Math.max(prevLives - 1, 0));
+        if (lives <= 1) {
+          setGameOver(true);
+          setGameStarted(false);
+          audioPlayerRef.current?.audio.current?.pause();
+        }
+        break;
+      case 'lightning':
+        const pointsToAddLightning = targets.length;
+        setTargets([]);
+        setScore((prevScore) => prevScore + pointsToAddLightning);
+        break;
+      case 'lava-shield':
+        const halfLength = Math.ceil(targets.length / 2);
+        const pointsToAddLavaShield = halfLength;
+        setTargets((prevTargets) => prevTargets.slice(halfLength));
+        setScore((prevScore) => prevScore + pointsToAddLavaShield);
+        setLives((prevLives) => prevLives + 2);
+        break;
+      default:
+        break;
     }
   };
 
@@ -118,6 +146,7 @@ const Game: React.FC = () => {
       id: Date.now() + Math.random(),
       color,
       rotation: 0,
+      spawnTime: Date.now(),
     };
     setTargets((prevTargets) => [...prevTargets, newTarget]);
   };
@@ -125,13 +154,18 @@ const Game: React.FC = () => {
   const spawnPowerUp = () => {
     const x = Math.random() * (gameWidth - targetSize);
     const y = Math.random() * (gameHeight - targetSize);
+    const dx = (Math.random() - 0.5) * targetSpeed;
+    const dy = (Math.random() - 0.5) * targetSpeed;
     const powerUpTypes: PowerUpType[] = ['extra-life', 'time-freeze', 'double-points', 'skull', 'lightning', 'lava-shield'];
     const type: PowerUpType = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
     const newPowerUp: PowerUp = {
       x,
       y,
+      dx,
+      dy,
       id: Date.now() + Math.random(),
       type,
+      spawnTime: Date.now(),
     };
     setPowerUps((prevPowerUps) => [...prevPowerUps, newPowerUp]);
 
@@ -164,7 +198,7 @@ const Game: React.FC = () => {
 
   const startGame = () => {
     setScore(0);
-    setLives(difficulty === 'easy' ? 5 : difficulty === 'normal' ? 3 : 1); // Set lives based on difficulty
+    setLives(difficulty === 'easy' ? 10 : difficulty === 'normal' ? 3 : 1);
     setGameOver(false);
     setTargets([]);
     setPowerUps([]);
@@ -179,7 +213,7 @@ const Game: React.FC = () => {
   const resetGame = () => {
     setGameStarted(false);
     setScore(0);
-    setLives(5);
+    setLives(difficulty === 'easy' ? 10 : difficulty === 'normal' ? 3 : 1);
     setGameOver(false);
     setTargets([]);
     setPowerUps([]);
@@ -195,22 +229,83 @@ const Game: React.FC = () => {
     if (gameStarted && !gameOver) {
       const movementInterval = setInterval(() => {
         setTargets((prevTargets) => {
-          const updatedTargets = prevTargets.map((target) => ({
-            ...target,
-            x: target.x + target.dx,
-            y: target.y + target.dy,
-            rotation: (target.rotation + targetRotationSpeed) % 360,
-          }));
+          const updatedTargets = prevTargets.map((target) => {
+            let { x, y, dx, dy } = target;
+
+            // Update position
+            x += dx;
+            y += dy;
+
+            // Bounce off walls
+            if (x < 0 || x > gameWidth - targetSize) {
+              dx = -dx;
+              x = x < 0 ? 0 : gameWidth - targetSize;
+            }
+            if (y < 0 || y > gameHeight - targetSize) {
+              dy = -dy;
+              y = y < 0 ? 0 : gameHeight - targetSize;
+            }
+
+            return {
+              ...target,
+              x,
+              y,
+              dx,
+              dy,
+              rotation: (target.rotation + targetRotationSpeed) % 360,
+            };
+          });
+
+          // Check for expired targets (45 seconds)
+          const expiredTargets = updatedTargets.filter(
+            (target) => Date.now() - target.spawnTime > 45000
+          );
+          if (expiredTargets.length > 0) {
+            setLives((prevLives) => {
+              const newLives = prevLives - expiredTargets.length;
+              if (newLives <= 0) {
+                setGameOver(true);
+                setGameStarted(false);
+                audioPlayerRef.current?.audio.current?.pause();
+              }
+              return Math.max(newLives, 0);
+            });
+          }
 
           const filteredTargets = updatedTargets.filter(
-            (target) =>
-              target.x > -targetSize &&
-              target.x < gameWidth &&
-              target.y > -targetSize &&
-              target.y < gameHeight
+            (target) => Date.now() - target.spawnTime <= 45000
           );
 
           return filteredTargets;
+        });
+
+        // Add movement for power-ups
+        setPowerUps((prevPowerUps) => {
+          const updatedPowerUps = prevPowerUps.map((powerUp) => {
+            let { x, y, dx, dy } = powerUp;
+
+            // Update position
+            x += dx;
+            y += dy;
+
+            // Bounce off walls for power-ups
+            if (x < 0 || x > gameWidth - targetSize) {
+              dx = -dx;
+              x = x < 0 ? 0 : gameWidth - targetSize;
+            }
+            if (y < 0 || y > gameHeight - targetSize) {
+              dy = -dy;
+              y = y < 0 ? 0 : gameHeight - targetSize;
+            }
+
+            return { ...powerUp, x, y };
+          });
+
+          const filteredPowerUps = updatedPowerUps.filter(
+            (powerUp) => Date.now() - powerUp.spawnTime <= powerUpDuration
+          );
+
+          return filteredPowerUps;
         });
       }, 20);
 
@@ -232,13 +327,46 @@ const Game: React.FC = () => {
 
   return (
     <div className="flex-container">
-      <h1 className="text-5xl font-extrabold mb-8 text-white">Gabriel&apos;s Game</h1>
+      <h1 className="text-5xl font-extrabold mb-8 text-white">Gabriel's Game</h1>
       <h2 className="text-xl text-gray-400 mt-4">Created by Dakota Lock for Gabriel</h2>
+
+      <button
+        className="instructions-button"
+        onClick={() => setShowInstructions(!showInstructions)}
+      >
+        Instructions
+      </button>
+
+      {showInstructions && (
+        <div className="instructions-modal">
+          <h3>How to Play</h3>
+          <ul>
+            <li>Click on the moving targets to score points.</li>
+            <li>If a target despawns without being clicked, you lose a life.</li>
+            <li>Use power-ups to gain advantages or face penalties.</li>
+          </ul>
+          <h3>Power-Ups</h3>
+          <ul>
+            <li><strong>+</strong>: Extra life</li>
+            <li><strong>❄️</strong>: Freeze targets for 3 seconds</li>
+            <li><strong>+10</strong>: Gain 10 points</li>
+            <li><strong>⚡️</strong>: Destroy all targets and gain points</li>
+            <li><strong>🛡️</strong>: Destroy half the targets, gain points, and gain 2 lives</li>
+            <li><strong>🧙‍♀️</strong>: Lose a life</li>
+          </ul>
+          <button
+            className="close-instructions-button"
+            onClick={() => setShowInstructions(false)}
+          >
+            Close
+          </button>
+        </div>
+      )}
 
       <div className="hidden">
         <AudioPlayer
           ref={audioPlayerRef}
-          src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+          src={selectedSong.src}
           autoPlay={false}
           loop={true}
           volume={0.5}
@@ -290,9 +418,9 @@ const Game: React.FC = () => {
           >
             {powerUp.type === 'extra-life' ? '+' :
              powerUp.type === 'time-freeze' ? '❄️' :
-             powerUp.type === 'double-points' ? '2x' :
-             powerUp.type === 'lightning' ? '⚡️' :
-             powerUp.type === 'lava-shield' ? '🛡️' : '💀'}
+             powerUp.type === 'double-points' ? '+10' :
+             powerUp.type === 'skull' ? '🧙‍♀️' :
+             powerUp.type === 'lightning' ? '⚡️' : '🛡️'}
           </div>
         ))}
 
@@ -362,6 +490,19 @@ const Game: React.FC = () => {
           </div>
         )}
       </div>
+
+      <select
+        value={selectedSong.id}
+        onChange={(e) => {
+          const selectedId = parseInt(e.target.value);
+          setSelectedSong(songs.find(song => song.id === selectedId) || songs[0]);
+        }}
+        className="song-selector"
+      >
+        {songs.map(song => (
+          <option key={song.id} value={song.id}>{song.name}</option>
+        ))}
+      </select>
     </div>
   );
 };
