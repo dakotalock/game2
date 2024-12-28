@@ -16,36 +16,6 @@ body {
   display: none !important;
 }
 
-/* Game arena container styling */
-.game-arena {
-  display: flex; /* Flexbox for child alignment */
-  justify-content: center; /* Center child content */
-  align-items: center; /* Center child content */
-  width: 80vw; /* Responsive width */
-  height: 80vh; /* Responsive height */
-  background-color: #1a1f2e; /* Match overall background */
-  border: 4px solid yellow; /* Debugging border */
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); /* Glow effect */
-  position: relative; /* Relative for positioning children */
-  margin: auto; /* Centering in flex container */
-  border-radius: 1rem; /* Rounded corners */
-}
-
-/* Game target styling (circles) */
-.circle {
-  width: 100px !important; /* Fixed width */
-  height: 100px !important; /* Fixed height */
-  border-radius: 50% !important; /* Ensures circular shape */
-  background-color: yellow !important; /* Test background color */
-  animation: pulse 2s infinite !important; /* Pulse effect */
-  position: absolute !important; /* Positioned inside the arena */
-}
-
-/* Absolute positioning for targets */
-.absolute {
-  position: absolute !important;
-}
-
 /* Keyframe animations */
 @keyframes pulse {
   0% {
@@ -79,25 +49,6 @@ body {
   }
 }
 
-/* Specific overrides to fix game visuals */
-div.relative.bg-gray-800.border-4.border-yellow-500 {
-  position: relative !important;
-  background-color: #1a1f2e !important;
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.2) !important;
-  margin: auto !important;
-  border-radius: 1rem !important; /* Ensure rounded corners */
-}
-
-/* Center text and Start Game button */
-.text-center, .start-game-button {
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  text-align: center !important;
-  margin-top: 1rem !important;
-  flex-direction: column !important; /* Stack text and button vertically */
-}
-
 /* Responsive handling */
 @media (max-width: 768px) {
   .game-arena {
@@ -108,11 +59,5 @@ div.relative.bg-gray-800.border-4.border-yellow-500 {
   .circle {
     width: 80px !important; /* Smaller circles */
     height: 80px !important;
-  }
-}
-
-  .circle {
-    width: 80px;
-    height: 80px;
   }
 }
