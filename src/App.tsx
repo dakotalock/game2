@@ -245,63 +245,45 @@ const Game: React.FC = () => {
           onPause={() => setIsPlaying(false)}
         />
       </div>
-
-      <div
-        ref={gameAreaRef}
-        className="game-area"
-        style={{ width: gameWidth, height: gameHeight }}
-        onMouseMove={handleMouseMove}
-        onClick={handleGameAreaClick}
-      >
-        {targets.map((target) => (
-          <div
-            key={target.id}
-            className="absolute rounded-full cursor-pointer transition-transform duration-100 animate-pulse"
-            style={{
-              width: targetSize,
-              height: targetSize,
-              left: target.x,
-              top: target.y,
-              backgroundColor: target.color,
-              transform: `rotate(${target.rotation}deg)`,
-              boxShadow: `0 0 10px ${target.color}`,
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleTargetClick(target.id);
-            }}
-          />
-        ))}
-
-        {powerUps.map((powerUp) => (
-          <div
-            key={powerUp.id}
-            className={`power-up power-up-${powerUp.type}`}
-            style={{
-              width: targetSize,
-              height: targetSize,
-              left: powerUp.x,
-              top: powerUp.y,
-              boxShadow: `0 0 10px ${
-                powerUp.type === 'extra-life' ? 'yellow' : 
-                powerUp.type === 'time-freeze' ? 'blue' : 
-                powerUp.type === 'double-points' ? 'red' : 
-                powerUp.type === 'lightning' ? 'purple' : 
-                powerUp.type === 'lava-shield' ? 'orange' : 'gray'
-              }`,
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              handlePowerUpClick(powerUp.id);
-            }}
-          >
-            {powerUp.type === 'extra-life' ? '+' : 
-             powerUp.type === 'time-freeze' ? '❄️' : 
-             powerUp.type === 'double-points' ? '2x' : 
-             powerUp.type === 'lightning' ? '⚡️' : 
-             powerUp.type === 'lava-shield' ? '🛡️' : '💀'}
-          </div>
-        ))}
+<div 
+  ref={gameAreaRef} 
+  style={{
+    position: 'relative',
+    backgroundColor: '#1f2937',
+    border: '4px solid #eab308',
+    borderRadius: '0.5rem',
+    overflow: 'hidden',
+    cursor: 'crosshair',
+    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)',
+    width: gameWidth,
+    height: gameHeight
+  }}
+  onMouseMove={handleMouseMove} 
+  onClick={handleGameAreaClick}
+>
+  {targets.map((target) => (
+    <div
+      key={target.id}
+      style={{
+        position: 'absolute',
+        width: `${targetSize}px`,
+        height: `${targetSize}px`,
+        left: target.x,
+        top: target.y,
+        backgroundColor: target.color,
+        borderRadius: '50%',
+        cursor: 'pointer',
+        transform: `rotate(${target.rotation}deg)`,
+        boxShadow: `0 0 10px ${target.color}`,
+        transition: 'transform 0.1s',
+        animation: 'pulse 2s infinite'
+      }}
+      onClick={(e) => {
+        e.stopPropagation();
+        handleTargetClick(target.id);
+      }}
+    />
+  ))}
 
         <div
           className="crosshair"
