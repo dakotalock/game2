@@ -232,7 +232,7 @@ const Game: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 p-4">
-      <h1 className="text-5xl font-extrabold mb-8 text-white">Gabriel's Game</h1>
+      <h1 className="text-5xl font-extrabold mb-8 text-white">Gabriel&#39;s Game</h1>
       <h2 className="text-xl text-gray-400 mt-4">Created by Dakota Lock for Gabriel</h2>
 
       <div className="hidden">
@@ -264,8 +264,8 @@ const Game: React.FC = () => {
               left: target.x,
               top: target.y,
               backgroundColor: target.color,
-              transform: `rotate(${target.rotation}deg)`,
-              boxShadow: `0 0 10px ${target.color}`,
+              transform: rotate(${target.rotation}deg),
+              boxShadow: 0 0 10px ${target.color},
             }}
             onClick={(e) => {
               e.stopPropagation();
@@ -277,13 +277,17 @@ const Game: React.FC = () => {
         {powerUps.map((powerUp) => (
           <div
             key={powerUp.id}
-            className={`absolute rounded-full cursor-pointer flex items-center justify-center text-white font-bold transition-transform duration-100 animate-bounce ${powerUp.type === 'extra-life' ? 'bg-yellow-500' : powerUp.type === 'time-freeze' ? 'bg-blue-500' : powerUp.type === 'double-points' ? 'bg-red-500' : powerUp.type === 'lightning' ? 'bg-purple-500' : powerUp.type === 'lava-shield' ? 'bg-orange-500' : 'bg-gray-500'}`}
+            className={absolute rounded-full cursor-pointer flex items-center justify-center text-white font-bold transition-transform duration-100 animate-bounce ${
+              powerUp.type === 'extra-life' ? 'bg-yellow-500' : powerUp.type === 'time-freeze' ? 'bg-blue-500' : powerUp.type === 'double-points' ? 'bg-red-500' : powerUp.type === 'lightning' ? 'bg-purple-500' : powerUp.type === 'lava-shield' ? 'bg-orange-500' : 'bg-gray-500'
+            }}
             style={{
               width: targetSize,
               height: targetSize,
               left: powerUp.x,
               top: powerUp.y,
-              boxShadow: `0 0 10px ${powerUp.type === 'extra-life' ? 'yellow' : powerUp.type === 'time-freeze' ? 'blue' : powerUp.type === 'double-points' ? 'red' : powerUp.type === 'lightning' ? 'purple' : powerUp.type === 'lava-shield' ? 'orange' : 'gray'}`,
+              boxShadow: 0 0 10px ${
+                powerUp.type === 'extra-life' ? 'yellow' : powerUp.type === 'time-freeze' ? 'blue' : powerUp.type === 'double-points' ? 'red' : powerUp.type === 'lightning' ? 'purple' : powerUp.type === 'lava-shield' ? 'orange' : 'gray'
+              },
             }}
             onClick={(e) => {
               e.stopPropagation();
