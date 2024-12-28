@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, MouseEvent } from 'react';
 import AudioPlayer from 'react-h5-audio-player';
 import 'react-h5-audio-player/lib/styles.css';
-import 'tailwindcss/tailwind.css';
 import './App.css';
 
 interface Target {
@@ -231,7 +230,7 @@ const Game: React.FC = () => {
   }, [gameStarted, gameOver]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 p-4">
+    <div className="flex-container">
       <h1 className="text-5xl font-extrabold mb-8 text-white">Gabriel&apos;s Game</h1>
       <h2 className="text-xl text-gray-400 mt-4">Created by Dakota Lock for Gabriel</h2>
 
@@ -249,7 +248,7 @@ const Game: React.FC = () => {
 
       <div
         ref={gameAreaRef}
-        className="relative bg-gray-800 border-4 border-yellow-500 rounded-lg overflow-hidden cursor-crosshair shadow-lg"
+        className="game-area"
         style={{ width: gameWidth, height: gameHeight }}
         onMouseMove={handleMouseMove}
         onClick={handleGameAreaClick}
@@ -277,13 +276,7 @@ const Game: React.FC = () => {
         {powerUps.map((powerUp) => (
           <div
             key={powerUp.id}
-            className={`absolute rounded-full cursor-pointer flex items-center justify-center text-white font-bold transition-transform duration-100 animate-bounce ${
-              powerUp.type === 'extra-life' ? 'bg-yellow-500' : 
-              powerUp.type === 'time-freeze' ? 'bg-blue-500' : 
-              powerUp.type === 'double-points' ? 'bg-red-500' : 
-              powerUp.type === 'lightning' ? 'bg-purple-500' : 
-              powerUp.type === 'lava-shield' ? 'bg-orange-500' : 'bg-gray-500'
-            }`}
+            className={`power-up power-up-${powerUp.type}`}
             style={{
               width: targetSize,
               height: targetSize,
@@ -311,7 +304,7 @@ const Game: React.FC = () => {
         ))}
 
         <div
-          className="absolute bg-green-500 rounded-full animate-ping"
+          className="crosshair"
           style={{
             width: 12,
             height: 12,
@@ -322,7 +315,7 @@ const Game: React.FC = () => {
         />
       </div>
 
-      <div className="mt-4 flex space-x-8">
+      <div className="score-display">
         <div className="text-xl text-white">Score: {score}</div>
         <div className="text-xl text-white">Lives: {lives}</div>
         <div className="text-xl text-white">Combo: x{combo}</div>
@@ -331,7 +324,7 @@ const Game: React.FC = () => {
       <div className="mt-6">
         {!gameStarted && !gameOver && (
           <button
-            className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 px-6 rounded-full shadow-lg transition duration-200"
+            className="game-button"
             onClick={startGame}
           >
             Start Game
@@ -348,7 +341,7 @@ const Game: React.FC = () => {
                 Play Again
               </button>
               <button
-                className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-full shadow-lg transition duration-200"
+                className="game-button reset"
                 onClick={resetGame}
               >
                 Reset Game
