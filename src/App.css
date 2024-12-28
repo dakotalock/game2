@@ -173,6 +173,28 @@ h2 {
 .power-up-lightning { background-color: #8b5cf6; box-shadow: 0 0 10px #8b5cf6; }
 .power-up-lava-shield { background-color: #f97316; box-shadow: 0 0 10px #f97316; }
 
+/* Difficulty Buttons */
+.difficulty-button {
+  padding: 8px 16px;
+  border: 2px solid #eab308;
+  border-radius: 8px;
+  background-color: transparent;
+  color: #eab308;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.difficulty-button.active {
+  background-color: #eab308;
+  color: #1f2937;
+}
+
+.difficulty-button:hover {
+  background-color: #eab308;
+  color: #1f2937;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   h1 {
