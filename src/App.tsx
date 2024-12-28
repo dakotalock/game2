@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef, MouseEvent } from 'react';
 import AudioPlayer from 'react-h5-audio-player';
 import 'react-h5-audio-player/lib/styles.css';
-import 'tailwindcss/tailwind.css';
-import './App.css';
 
 interface Target {
   x: number;
@@ -38,9 +36,9 @@ const Game: React.FC = () => {
   const gameWidth: number = 600;
   const gameHeight: number = 400;
   const targetSpeed: number = 2;
-  const targetSpawnInterval: number = 1500 / 2; 
-  const powerUpSpawnInterval: number = 5000 / 2; 
-  const powerUpDuration: number = 5000; // Power-ups last for 5 seconds
+  const targetSpawnInterval: number = 1500 / 2;
+  const powerUpSpawnInterval: number = 5000 / 2;
+  const powerUpDuration: number = 5000;
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   const targetRotationSpeed: number = 2;
@@ -88,7 +86,7 @@ const Game: React.FC = () => {
         );
       }, 3000);
     } else if (clickedPowerUp.type === 'double-points') {
-      setScore((prevScore) => prevScore + 10); // Bonus points
+      setScore((prevScore) => prevScore + 10);
     } else if (clickedPowerUp.type === 'skull') {
       setLives((prevLives) => Math.max(prevLives - 1, 0));
     } else if (clickedPowerUp.type === 'lightning') {
@@ -232,7 +230,7 @@ const Game: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 p-4">
-      <h1 className="text-5xl font-extrabold mb-8 text-white">Gabriel&#39;s Game</h1>
+      <h1 className="text-5xl font-extrabold mb-8 text-white">Gabriel&apos;s Game</h1>
       <h2 className="text-xl text-gray-400 mt-4">Created by Dakota Lock for Gabriel</h2>
 
       <div className="hidden">
@@ -264,8 +262,8 @@ const Game: React.FC = () => {
               left: target.x,
               top: target.y,
               backgroundColor: target.color,
-              transform: rotate(${target.rotation}deg),
-              boxShadow: 0 0 10px ${target.color},
+              transform: `rotate(${target.rotation}deg)`,
+              boxShadow: `0 0 10px ${target.color}`,
             }}
             onClick={(e) => {
               e.stopPropagation();
@@ -277,24 +275,36 @@ const Game: React.FC = () => {
         {powerUps.map((powerUp) => (
           <div
             key={powerUp.id}
-            className={absolute rounded-full cursor-pointer flex items-center justify-center text-white font-bold transition-transform duration-100 animate-bounce ${
-              powerUp.type === 'extra-life' ? 'bg-yellow-500' : powerUp.type === 'time-freeze' ? 'bg-blue-500' : powerUp.type === 'double-points' ? 'bg-red-500' : powerUp.type === 'lightning' ? 'bg-purple-500' : powerUp.type === 'lava-shield' ? 'bg-orange-500' : 'bg-gray-500'
-            }}
+            className={`absolute rounded-full cursor-pointer flex items-center justify-center text-white font-bold transition-transform duration-100 animate-bounce ${
+              powerUp.type === 'extra-life' ? 'bg-yellow-500' : 
+              powerUp.type === 'time-freeze' ? 'bg-blue-500' : 
+              powerUp.type === 'double-points' ? 'bg-red-500' : 
+              powerUp.type === 'lightning' ? 'bg-purple-500' : 
+              powerUp.type === 'lava-shield' ? 'bg-orange-500' : 'bg-gray-500'
+            }`}
             style={{
               width: targetSize,
               height: targetSize,
               left: powerUp.x,
               top: powerUp.y,
-              boxShadow: 0 0 10px ${
-                powerUp.type === 'extra-life' ? 'yellow' : powerUp.type === 'time-freeze' ? 'blue' : powerUp.type === 'double-points' ? 'red' : powerUp.type === 'lightning' ? 'purple' : powerUp.type === 'lava-shield' ? 'orange' : 'gray'
-              },
+              boxShadow: `0 0 10px ${
+                powerUp.type === 'extra-life' ? 'yellow' : 
+                powerUp.type === 'time-freeze' ? 'blue' : 
+                powerUp.type === 'double-points' ? 'red' : 
+                powerUp.type === 'lightning' ? 'purple' : 
+                powerUp.type === 'lava-shield' ? 'orange' : 'gray'
+              }`,
             }}
             onClick={(e) => {
               e.stopPropagation();
               handlePowerUpClick(powerUp.id);
             }}
           >
-            {powerUp.type === 'extra-life' ? '+' : powerUp.type === 'time-freeze' ? '❄️' : powerUp.type === 'double-points' ? '2x' : powerUp.type === 'lightning' ? '⚡️' : powerUp.type === 'lava-shield' ? '🛡️' : '💀'}
+            {powerUp.type === 'extra-life' ? '+' : 
+             powerUp.type === 'time-freeze' ? '❄️' : 
+             powerUp.type === 'double-points' ? '2x' : 
+             powerUp.type === 'lightning' ? '⚡️' : 
+             powerUp.type === 'lava-shield' ? '🛡️' : '💀'}
           </div>
         ))}
 
