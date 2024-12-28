@@ -14,7 +14,7 @@ interface Target {
   rotation: number;
 }
 
-type PowerUpType = 'extra-life' | 'time-freeze' | 'double-points';
+type PowerUpType = 'extra-life' | 'time-freeze' | 'double-points' | 'skull' | 'lightning' | 'lava-shield';
 
 interface PowerUp {
   x: number;
@@ -25,7 +25,7 @@ interface PowerUp {
 
 const Game: React.FC = () => {
   const [score, setScore] = useState<number>(0);
-  const [lives, setLives] = useState<number>(3);
+  const [lives, setLives] = useState<number>(5);
   const [gameOver, setGameOver] = useState<boolean>(false);
   const [gameStarted, setGameStarted] = useState<boolean>(false);
   const [targets, setTargets] = useState<Target[]>([]);
@@ -38,14 +38,13 @@ const Game: React.FC = () => {
   const gameWidth: number = 600;
   const gameHeight: number = 400;
   const targetSpeed: number = 2;
-  const targetSpawnInterval: number = 1500;
-  const powerUpSpawnInterval: number = 5000;
+  const targetSpawnInterval: number = 1500 / 2; 
+  const powerUpSpawnInterval: number = 5000 / 2; 
   const powerUpDuration: number = 5000; // Power-ups last for 5 seconds
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   const targetRotationSpeed: number = 2;
 
-  // Inline random color generator
   const getRandomColor = (): string => {
     const letters = '0123456789ABCDEF';
     let color = '#';
@@ -67,10 +66,10 @@ const Game: React.FC = () => {
     const clickedPowerUp = powerUps.find((pu) => pu.id === id);
     if (!clickedPowerUp) return;
     setPowerUps((prevPowerUps) => prevPowerUps.filter((powerUp) => powerUp.id !== id));
+
     if (clickedPowerUp.type === 'extra-life') {
       setLives((prevLives) => prevLives + 1);
-    }
-    if (clickedPowerUp.type === 'time-freeze') {
+    } else if (clickedPowerUp.type === 'time-freeze') {
       setCombo(0);
       setTargets((prevTargets) =>
         prevTargets.map((target) => ({
@@ -88,9 +87,20 @@ const Game: React.FC = () => {
           }))
         );
       }, 3000);
-    }
-    if (clickedPowerUp.type === 'double-points') {
+    } else if (clickedPowerUp.type === 'double-points') {
       setScore((prevScore) => prevScore + 10); // Bonus points
+    } else if (clickedPowerUp.type === 'skull') {
+      setLives((prevLives) => Math.max(prevLives - 1, 0));
+    } else if (clickedPowerUp.type === 'lightning') {
+      const pointsToAdd = targets.length;
+      setTargets([]);
+      setScore((prevScore) => prevScore + pointsToAdd);
+    } else if (clickedPowerUp.type === 'lava-shield') {
+      const halfLength = Math.ceil(targets.length / 2);
+      const pointsToAdd = halfLength;
+      setTargets((prevTargets) => prevTargets.slice(halfLength));
+      setScore((prevScore) => prevScore + pointsToAdd);
+      setLives((prevLives) => prevLives + 2);
     }
   };
 
@@ -99,7 +109,7 @@ const Game: React.FC = () => {
     const y = Math.random() * (gameHeight - targetSize);
     const dx = (Math.random() - 0.5) * targetSpeed;
     const dy = (Math.random() - 0.5) * targetSpeed;
-    const color = getRandomColor(); // Use inline random color generator
+    const color = getRandomColor();
     const newTarget: Target = {
       x,
       y,
@@ -115,7 +125,8 @@ const Game: React.FC = () => {
   const spawnPowerUp = () => {
     const x = Math.random() * (gameWidth - targetSize);
     const y = Math.random() * (gameHeight - targetSize);
-    const type: PowerUpType = Math.random() < 0.33 ? 'extra-life' : Math.random() < 0.5 ? 'time-freeze' : 'double-points';
+    const powerUpTypes: PowerUpType[] = ['extra-life', 'time-freeze', 'double-points', 'skull', 'lightning', 'lava-shield'];
+    const type: PowerUpType = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
     const newPowerUp: PowerUp = {
       x,
       y,
@@ -124,7 +135,6 @@ const Game: React.FC = () => {
     };
     setPowerUps((prevPowerUps) => [...prevPowerUps, newPowerUp]);
 
-    // Remove power-up after a duration
     setTimeout(() => {
       setPowerUps((prevPowerUps) => prevPowerUps.filter((powerUp) => powerUp.id !== newPowerUp.id));
     }, powerUpDuration);
@@ -154,14 +164,13 @@ const Game: React.FC = () => {
 
   const startGame = () => {
     setScore(0);
-    setLives(3);
+    setLives(5);
     setGameOver(false);
     setTargets([]);
     setPowerUps([]);
     setCombo(0);
     setGameStarted(true);
 
-    // Start playing music
     if (audioPlayerRef.current) {
       audioPlayerRef.current.audio.current.play();
     }
@@ -170,13 +179,12 @@ const Game: React.FC = () => {
   const resetGame = () => {
     setGameStarted(false);
     setScore(0);
-    setLives(3);
+    setLives(5);
     setGameOver(false);
     setTargets([]);
     setPowerUps([]);
     setCombo(0);
 
-    // Stop music
     if (audioPlayerRef.current) {
       audioPlayerRef.current.audio.current.pause();
       audioPlayerRef.current.audio.current.currentTime = 0;
@@ -224,10 +232,9 @@ const Game: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 p-4">
-      <h1 className="text-5xl font-extrabold mb-8 text-white">Redacted's Game</h1>
-      <h2 className="text-xl text-gray-400 mt-4">Created by Dakota Lock for Redacted</h2>
+      <h1 className="text-5xl font-extrabold mb-8 text-white">Gabriel&#39;s Game</h1>
+      <h2 className="text-xl text-gray-400 mt-4">Created by Dakota Lock for Gabriel</h2>
 
-      {/* Invisible Audio Player */}
       <div className="hidden">
         <AudioPlayer
           ref={audioPlayerRef}
@@ -271,7 +278,7 @@ const Game: React.FC = () => {
           <div
             key={powerUp.id}
             className={`absolute rounded-full cursor-pointer flex items-center justify-center text-white font-bold transition-transform duration-100 animate-bounce ${
-              powerUp.type === 'extra-life' ? 'bg-yellow-500' : powerUp.type === 'time-freeze' ? 'bg-blue-500' : 'bg-red-500'
+              powerUp.type === 'extra-life' ? 'bg-yellow-500' : powerUp.type === 'time-freeze' ? 'bg-blue-500' : powerUp.type === 'double-points' ? 'bg-red-500' : powerUp.type === 'lightning' ? 'bg-purple-500' : powerUp.type === 'lava-shield' ? 'bg-orange-500' : 'bg-gray-500'
             }`}
             style={{
               width: targetSize,
@@ -279,7 +286,7 @@ const Game: React.FC = () => {
               left: powerUp.x,
               top: powerUp.y,
               boxShadow: `0 0 10px ${
-                powerUp.type === 'extra-life' ? 'yellow' : powerUp.type === 'time-freeze' ? 'blue' : 'red'
+                powerUp.type === 'extra-life' ? 'yellow' : powerUp.type === 'time-freeze' ? 'blue' : powerUp.type === 'double-points' ? 'red' : powerUp.type === 'lightning' ? 'purple' : powerUp.type === 'lava-shield' ? 'orange' : 'gray'
               }`,
             }}
             onClick={(e) => {
@@ -287,7 +294,7 @@ const Game: React.FC = () => {
               handlePowerUpClick(powerUp.id);
             }}
           >
-            {powerUp.type === 'extra-life' ? '+' : powerUp.type === 'time-freeze' ? '❄️' : '2x'}
+            {powerUp.type === 'extra-life' ? '+' : powerUp.type === 'time-freeze' ? '❄️' : powerUp.type === 'double-points' ? '2x' : powerUp.type === 'lightning' ? '⚡️' : powerUp.type === 'lava-shield' ? '🛡️' : '💀'}
           </div>
         ))}
 
