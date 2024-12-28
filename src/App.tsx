@@ -285,6 +285,52 @@ const Game: React.FC = () => {
     />
   ))}
 
+  {powerUps.map((powerUp) => (
+    <div
+      key={powerUp.id}
+      className={`power-up power-up-${powerUp.type}`}
+      style={{
+        position: 'absolute',
+        width: `${targetSize}px`,
+        height: `${targetSize}px`,
+        left: powerUp.x,
+        top: powerUp.y,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'white',
+        fontWeight: 'bold',
+        cursor: 'pointer',
+        borderRadius: '50%',
+        animation: 'bounce 1s infinite'
+      }}
+      onClick={(e) => {
+        e.stopPropagation();
+        handlePowerUpClick(powerUp.id);
+      }}
+    >
+      {powerUp.type === 'extra-life' ? '+' :
+       powerUp.type === 'time-freeze' ? '❄️' :
+       powerUp.type === 'double-points' ? '2x' :
+       powerUp.type === 'lightning' ? '⚡️' :
+       powerUp.type === 'lava-shield' ? '🛡️' : '💀'}
+    </div>
+  ))}
+
+  <div
+    style={{
+      position: 'absolute',
+      width: '12px',
+      height: '12px',
+      left: mousePosition.x - 6,
+      top: mousePosition.y - 6,
+      border: '2px solid white',
+      borderRadius: '50%',
+      pointerEvents: 'none'
+    }}
+  />
+</div>
+
         <div
           className="crosshair"
           style={{
