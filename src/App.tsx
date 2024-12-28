@@ -31,6 +31,7 @@ const Game: React.FC = () => {
   const [powerUps, setPowerUps] = useState<PowerUp[]>([]);
   const [combo, setCombo] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [difficulty, setDifficulty] = useState<'easy' | 'normal' | 'hard'>('normal'); // New state for difficulty
   const audioPlayerRef = useRef<any>(null);
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const targetSize: number = 30;
@@ -163,7 +164,7 @@ const Game: React.FC = () => {
 
   const startGame = () => {
     setScore(0);
-    setLives(5);
+    setLives(difficulty === 'easy' ? 5 : difficulty === 'normal' ? 3 : 1); // Set lives based on difficulty
     setGameOver(false);
     setTargets([]);
     setPowerUps([]);
@@ -248,14 +249,8 @@ const Game: React.FC = () => {
 
       <div
         ref={gameAreaRef}
+        className="game-area"
         style={{
-          position: 'relative',
-          backgroundColor: '#1f2937',
-          border: '4px solid #eab308',
-          borderRadius: '0.5rem',
-          overflow: 'hidden',
-          cursor: 'crosshair',
-          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)',
           width: gameWidth,
           height: gameHeight,
         }}
@@ -265,19 +260,13 @@ const Game: React.FC = () => {
         {targets.map((target) => (
           <div
             key={target.id}
+            className="target"
             style={{
-              position: 'absolute',
-              width: `${targetSize}px`,
-              height: `${targetSize}px`,
               left: target.x,
               top: target.y,
               backgroundColor: target.color,
-              borderRadius: '50%',
-              cursor: 'pointer',
               transform: `rotate(${target.rotation}deg)`,
               boxShadow: `0 0 10px ${target.color}`,
-              transition: 'transform 0.1s',
-              animation: 'pulse 2s infinite',
             }}
             onClick={(e) => {
               e.stopPropagation();
@@ -291,19 +280,8 @@ const Game: React.FC = () => {
             key={powerUp.id}
             className={`power-up power-up-${powerUp.type}`}
             style={{
-              position: 'absolute',
-              width: `${targetSize}px`,
-              height: `${targetSize}px`,
               left: powerUp.x,
               top: powerUp.y,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              borderRadius: '50%',
-              animation: 'bounce 1s infinite',
             }}
             onClick={(e) => {
               e.stopPropagation();
@@ -319,15 +297,10 @@ const Game: React.FC = () => {
         ))}
 
         <div
+          className="crosshair"
           style={{
-            position: 'absolute',
-            width: '12px',
-            height: '12px',
             left: mousePosition.x - 6,
             top: mousePosition.y - 6,
-            border: '2px solid white',
-            borderRadius: '50%',
-            pointerEvents: 'none',
           }}
         />
       </div>
@@ -340,19 +313,41 @@ const Game: React.FC = () => {
 
       <div className="mt-6">
         {!gameStarted && !gameOver && (
-          <button
-            className="game-button"
-            onClick={startGame}
-          >
-            Start Game
-          </button>
+          <div className="flex flex-col items-center space-y-4">
+            <button
+              className="game-button"
+              onClick={startGame}
+            >
+              Start Game
+            </button>
+            <div className="flex space-x-4">
+              <button
+                className={`difficulty-button ${difficulty === 'easy' ? 'active' : ''}`}
+                onClick={() => setDifficulty('easy')}
+              >
+                Easy
+              </button>
+              <button
+                className={`difficulty-button ${difficulty === 'normal' ? 'active' : ''}`}
+                onClick={() => setDifficulty('normal')}
+              >
+                Normal
+              </button>
+              <button
+                className={`difficulty-button ${difficulty === 'hard' ? 'active' : ''}`}
+                onClick={() => setDifficulty('hard')}
+              >
+                Hard
+              </button>
+            </div>
+          </div>
         )}
         {gameOver && (
-          <div className="text-center mt-6">
+          <div className="game-over">
             <p className="text-3xl font-bold text-red-500">Game Over!</p>
             <div className="mt-4 flex justify-center space-x-4">
               <button
-                className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 px-6 rounded-full shadow-lg transition duration-200"
+                className="game-button"
                 onClick={startGame}
               >
                 Play Again
