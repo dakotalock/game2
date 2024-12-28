@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, MouseEvent } from 'react';
 import AudioPlayer from 'react-h5-audio-player';
 import 'react-h5-audio-player/lib/styles.css';
+import 'tailwindcss/tailwind.css';
 
 interface Target {
   x: number;
