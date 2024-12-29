@@ -284,11 +284,11 @@ const Game: React.FC = () => {
     });
   };
 
-  const handleGameAreaClick = (e: MouseEvent<HTMLDivElement>) => {
+  const handleMouseClick = (e: MouseEvent<HTMLDivElement>) => {
     if (gameOver) return;
 
-    const rect = gameAreaRef.current?.getBoundingClientRect();
-    if (!rect) return;
+    if (!gameAreaRef.current) return;
+    const rect = gameAreaRef.current.getBoundingClientRect();
 
     const clickX = e.clientX - rect.left;
     const clickY = e.clientY - rect.top;
@@ -578,7 +578,7 @@ const Game: React.FC = () => {
           position: 'relative',
         }}
         onMouseMove={handleMouseMove}
-        onClick={handleGameAreaClick}
+        onClick={handleMouseClick}
       >
         {targets.map((target) => {
           const backgroundColor = target.type === 'slime' ? '#66CCFF' : target.type === 'mini' ? '#FF66CC' : target.color;
