@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "start": "vite preview" // Add this line for Railway
+    "start": "vite preview"
   },
   "author": "Your Name",
   "license": "ISC",
