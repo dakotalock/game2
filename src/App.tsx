@@ -53,7 +53,13 @@ const Game: React.FC = () => {
   const targetRotationSpeed: number = 2;
 
   // New state for laser animation
-  const [laser, setLaser] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
+  const [laser, setLaser] = useState<{
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+  timestamp: number;
+} | null>(null);
 
   const songs = [
     { id: 1, name: 'Lo-Fi Chill Beats', src: 'https://soundcloud.com/oxinym/sets/lofi-beats-royalty-free' },
@@ -282,22 +288,35 @@ const Game: React.FC = () => {
   };
 
   const handleGameAreaClick = (e: MouseEvent<HTMLDivElement>) => {
-    if (gameOver) return;
+  if (gameOver) return;
 
-    // Get click position relative to the game area
-    const rect = gameAreaRef.current?.getBoundingClientRect();
-    if (!rect) return;
+  const rect = gameAreaRef.current?.getBoundingClientRect();
+  if (!rect) return;
 
-    const x2 = e.clientX - rect.left;
-    const y2 = e.clientY - rect.top;
+  // Get click coordinates relative to game area
+  const clickX = e.clientX - rect.left;
+  const clickY = e.clientY - rect.top;
 
-    // Set laser coordinates (from cursor to click position)
-    setLaser({
-      x1: mousePosition.x,
-      y1: mousePosition.y,
-      x2,
-      y2,
-    });
+  // Set laser with current timestamp
+  setLaser({
+    startX: mousePosition.x,
+    startY: mousePosition.y,
+    endX: clickX,
+    endY: clickY,
+    timestamp: Date.now(),
+  });
+
+  // Handle lives reduction
+  setLives((prevLives) => {
+    const newLives = prevLives - 1;
+    if (newLives <= 0) {
+      setGameOver(true);
+      setGameStarted(false);
+      stopMusic();
+    }
+    return newLives;
+  });
+};
 
     // Remove laser after animation ends
     setTimeout(() => setLaser(null), 300); // Match the duration of the CSS animation
@@ -468,6 +487,70 @@ const Game: React.FC = () => {
     );
   };
 
+const renderLaser = () => {
+  if (!laser) return null;
+
+  // Calculate if laser should still be visible (300ms duration)
+  const age = Date.now() - laser.timestamp;
+  if (age > 300) {
+    setLaser(null);
+    return null;
+  }
+
+  // Calculate angle and length
+  const dx = laser.endX - laser.startX;
+  const dy = laser.endY - laser.startY;
+  const angle = Math.atan2(dy, dx);
+  const length = Math.sqrt(dx * dx + dy * dy);
+
+  // Calculate opacity based on age
+  const opacity = 1 - (age / 300);
+
+  return (
+    <>
+      {/* Main laser beam */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          left: laser.startX,
+          top: laser.startY,
+          width: length,
+          height: '2px',
+          background: 'linear-gradient(90deg, #ff0000, #ff6b6b)',
+          boxShadow: '0 0 10px #ff0000, 0 0 20px #ff6b6b',
+          transform: `rotate(${angle}rad)`,
+          transformOrigin: '0 50%',
+          opacity: opacity,
+        }}
+      />
+      {/* Impact effect at end point */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          left: laser.endX - 10,
+          top: laser.endY - 10,
+          width: '20px',
+          height: '20px',
+          background: 'radial-gradient(circle, #ff6b6b 0%, transparent 70%)',
+          opacity: opacity,
+        }}
+      />
+      {/* Muzzle flash at start point */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          left: laser.startX - 5,
+          top: laser.startY - 5,
+          width: '10px',
+          height: '10px',
+          background: 'radial-gradient(circle, #ffffff 0%, #ff0000 50%, transparent 70%)',
+          opacity: opacity,
+        }}
+      />
+    </>
+  );
+};
+
   return (
     <div className="flex-container">
       <h1 className="text-5xl font-extrabold mb-8 text-white">Gabriel's Game</h1>
@@ -588,16 +671,13 @@ const Game: React.FC = () => {
         ))}
 
         <div
-          className="crosshair"
-          style={{
-            left: mousePosition.x - 6,
-            top: mousePosition.y - 6,
-          }}
-        />
-
-        {/* Render laser */}
-        {renderLaser()}
-      </div>
+  className="crosshair"
+  style={{
+    left: mousePosition.x - 6,
+    top: mousePosition.y - 6,
+  }}
+/>
+{renderLaser()}
 
       <div className="score-display">
         <div className="text-xl text-white">Score: {score}</div>
