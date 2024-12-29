@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, MouseEvent } from 'react';
-import './App.css'; // Ensure your CSS file is imported
+import AudioPlayer from 'react-h5-audio-player';
+import 'react-h5-audio-player/lib/styles.css';
+import './App.css';
 
 interface Target {
   x: number;
