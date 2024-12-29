@@ -328,15 +328,12 @@ const Game: React.FC = () => {
     const opacity = Math.max(0, 1 - (age / 300));
 
     return (
-      <div
-        style={{
-          position: 'absolute',
-          left: laser.startX,
-          top: laser.startY,
-        }}
-      >
+      <>
         <div
+          className="absolute pointer-events-none"
           style={{
+            left: laser.startX,
+            top: laser.startY,
             transform: `rotate(${angle}rad)`,
             transformOrigin: '0% 50%',
             width: `${length}px`,
@@ -344,10 +341,35 @@ const Game: React.FC = () => {
             background: 'linear-gradient(90deg, rgba(255,0,0,1) 0%, rgba(255,107,107,0.8) 100%)',
             boxShadow: '0 0 10px #ff0000, 0 0 20px #ff6b6b',
             opacity,
+            transition: 'opacity 0.1s ease-out',
             zIndex: 1000,
           }}
         />
-      </div>
+        <div
+          className="absolute pointer-events-none"
+          style={{
+            left: laser.endX - 15,
+            top: laser.endY - 15,
+            width: '30px',
+            height: '30px',
+            background: 'radial-gradient(circle, rgba(255,107,107,0.8) 0%, transparent 70%)',
+            opacity,
+            animation: 'impact 0.3s ease-out',
+          }}
+        />
+        <div
+          className="absolute pointer-events-none"
+          style={{
+            left: laser.startX - 8,
+            top: laser.startY - 8,
+            width: '16px',
+            height: '16px',
+            background: 'radial-gradient(circle, #ffffff 0%, #ff0000 50%, transparent 70%)',
+            opacity,
+            animation: 'muzzleFlash 0.2s ease-out',
+          }}
+        />
+      </>
     );
   };
 
