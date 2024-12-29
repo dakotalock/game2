@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useRef, MouseEvent } from 'react';
-import AudioPlayer from 'react-h5-audio-player';
-import 'react-h5-audio-player/lib/styles.css';
-import './App.css';
+import './App.css'; // Ensure your CSS file is imported
 
 interface Target {
   x: number;
@@ -39,8 +37,6 @@ const Game: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [difficulty, setDifficulty] = useState<'easy' | 'normal' | 'hard'>('normal');
   const [showInstructions, setShowInstructions] = useState<boolean>(false);
-  const audioPlayerRef = useRef<any>(null);
-  const soundCloudRef = useRef<HTMLIFrameElement>(null);
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const targetSize: number = 30;
   const gameWidth: number = 600;
@@ -59,42 +55,6 @@ const Game: React.FC = () => {
     endY: number;
     timestamp: number;
   } | null>(null);
-
-  const songs = [
-    { id: 1, name: 'Lo-Fi Chill Beats', src: 'https://soundcloud.com/oxinym/sets/lofi-beats-royalty-free' },
-    { id: 2, name: 'Song 1', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
-    { id: 3, name: 'Song 2', src: 'https://files.freemusicarchive.org/storage-freemusicarchive-org/music/ccCommunity/Chad_Crouch/Arps/Chad_Crouch_-_Algorithms.mp3' },
-    { id: 4, name: 'Song 3', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3' },
-    { id: 5, name: 'Song 4', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3' },
-    { id: 6, name: 'Song 5', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3' },
-  ];
-
-  const [selectedSong, setSelectedSong] = useState(songs[0]);
-
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://w.soundcloud.com/player/api.js';
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (gameStarted) {
-      stopMusic();
-      startMusic();
-    }
-  }, [selectedSong]);
-
-  const handleSongChange = (id: number) => {
-    const song = songs.find((song) => song.id === id);
-    if (song) {
-      setSelectedSong(song);
-    }
-  };
 
   const getRandomColor = (): string => {
     const letters = '0123456789ABCDEF';
@@ -232,7 +192,6 @@ const Game: React.FC = () => {
         if (lives <= 1) {
           setGameOver(true);
           setGameStarted(false);
-          stopMusic();
         }
         break;
       case 'lightning':
@@ -293,6 +252,8 @@ const Game: React.FC = () => {
     const clickX = e.clientX - rect.left;
     const clickY = e.clientY - rect.top;
 
+    console.log('Mouse Click Position:', { x: clickX, y: clickY }); // Debugging log
+
     setLaser({
       startX: mousePosition.x,
       startY: mousePosition.y,
@@ -306,7 +267,6 @@ const Game: React.FC = () => {
       if (newLives <= 0) {
         setGameOver(true);
         setGameStarted(false);
-        stopMusic();
       }
       return newLives;
     });
@@ -327,11 +287,14 @@ const Game: React.FC = () => {
     const length = Math.sqrt(dx * dx + dy * dy);
     const opacity = Math.max(0, 1 - (age / 300));
 
+    console.log('Laser Position:', { startX: laser.startX, startY: laser.startY, endX: laser.endX, endY: laser.endY }); // Debugging log
+
     return (
       <>
         <div
-          className="absolute pointer-events-none"
+          className="laser"
           style={{
+            position: 'absolute',
             left: laser.startX,
             top: laser.startY,
             transform: `rotate(${angle}rad)`,
@@ -346,8 +309,9 @@ const Game: React.FC = () => {
           }}
         />
         <div
-          className="absolute pointer-events-none"
+          className="impact"
           style={{
+            position: 'absolute',
             left: laser.endX - 15,
             top: laser.endY - 15,
             width: '30px',
@@ -358,8 +322,9 @@ const Game: React.FC = () => {
           }}
         />
         <div
-          className="absolute pointer-events-none"
+          className="muzzle-flash"
           style={{
+            position: 'absolute',
             left: laser.startX - 8,
             top: laser.startY - 8,
             width: '16px',
@@ -373,24 +338,6 @@ const Game: React.FC = () => {
     );
   };
 
-  const startMusic = () => {
-    if (selectedSong.id === 1 && soundCloudRef.current) {
-      const widget = (window as any).SC.Widget(soundCloudRef.current);
-      widget.play();
-    } else if (audioPlayerRef.current) {
-      audioPlayerRef.current.audio.current.play();
-    }
-  };
-
-  const stopMusic = () => {
-    if (selectedSong.id === 1 && soundCloudRef.current) {
-      const widget = (window as any).SC.Widget(soundCloudRef.current);
-      widget.pause();
-    } else if (audioPlayerRef.current) {
-      audioPlayerRef.current.audio.current.pause();
-    }
-  };
-
   const startGame = () => {
     setScore(0);
     setLives(difficulty === 'easy' ? 10 : difficulty === 'normal' ? 3 : 1);
@@ -399,7 +346,6 @@ const Game: React.FC = () => {
     setPowerUps([]);
     setCombo(0);
     setGameStarted(true);
-    startMusic();
   };
 
   const resetGame = () => {
@@ -410,7 +356,6 @@ const Game: React.FC = () => {
     setTargets([]);
     setPowerUps([]);
     setCombo(0);
-    stopMusic();
   };
 
   useEffect(() => {
@@ -451,7 +396,6 @@ const Game: React.FC = () => {
               if (newLives <= 0) {
                 setGameOver(true);
                 setGameStarted(false);
-                stopMusic();
               }
               return Math.max(newLives, 0);
             });
@@ -545,36 +489,12 @@ const Game: React.FC = () => {
         </div>
       )}
 
-      <div className="hidden">
-        {selectedSong.id === 1 ? (
-          <iframe
-            ref={soundCloudRef}
-            width="0"
-            height="0"
-            scrolling="no"
-            frameBorder="no"
-            allow="autoplay"
-            src={`https://w.soundcloud.com/player/?url=${encodeURIComponent(selectedSong.src)}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true`}
-          ></iframe>
-        ) : (
-          <AudioPlayer
-            ref={audioPlayerRef}
-            src={selectedSong.src}
-            autoPlay={false}
-            loop={true}
-            volume={0.5}
-            onPlay={() => setIsPlaying(true)}
-            onPause={() => setIsPlaying(false)}
-          />
-        )}
-      </div>
-
       <div
         ref={gameAreaRef}
         className="game-area"
         style={{
-          width: gameWidth,
-          height: gameHeight,
+          width: `${gameWidth}px`,
+          height: `${gameHeight}px`,
           position: 'relative',
         }}
         onMouseMove={handleMouseMove}
@@ -696,19 +616,6 @@ const Game: React.FC = () => {
           </div>
         )}
       </div>
-
-      <select
-        value={selectedSong.id}
-        onChange={(e) => {
-          const selectedId = parseInt(e.target.value);
-          setSelectedSong(songs.find(song => song.id === selectedId) || songs[0]);
-        }}
-        className="song-selector"
-      >
-        {songs.map(song => (
-          <option key={song.id} value={song.id}>{song.name}</option>
-        ))}
-      </select>
     </div>
   );
 };
