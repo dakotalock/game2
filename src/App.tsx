@@ -150,6 +150,21 @@ const Game: React.FC = () => {
 
   const handleTargetClick = (id: number, e: MouseEvent<HTMLDivElement>) => {
     if (gameOver) return;
+
+    // Trigger the laser animation
+    if (!gameAreaRef.current) return;
+    const rect = gameAreaRef.current.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+    setLaser({
+      startX: mousePosition.x,
+      startY: mousePosition.y,
+      endX: clickX,
+      endY: clickY,
+      timestamp: Date.now(),
+    });
+
+    // Handle target click logic
     setTargets((prevTargets) => {
       const updatedTargets = prevTargets.filter((target) => target.id !== id);
       const clickedTarget = prevTargets.find((target) => target.id === id);
@@ -197,6 +212,21 @@ const Game: React.FC = () => {
 
   const handlePowerUpClick = (id: number, e: MouseEvent<HTMLDivElement>) => {
     if (gameOver) return;
+
+    // Trigger the laser animation
+    if (!gameAreaRef.current) return;
+    const rect = gameAreaRef.current.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+    setLaser({
+      startX: mousePosition.x,
+      startY: mousePosition.y,
+      endX: clickX,
+      endY: clickY,
+      timestamp: Date.now(),
+    });
+
+    // Handle power-up click logic
     const clickedPowerUp = powerUps.find((pu) => pu.id === id);
     if (!clickedPowerUp) return;
     setPowerUps((prevPowerUps) => prevPowerUps.filter((powerUp) => powerUp.id !== id));
@@ -250,38 +280,6 @@ const Game: React.FC = () => {
       default:
         break;
     }
-  };
-
-  const spawnPowerUp = () => {
-    const x = Math.random() * (gameWidth - targetSize);
-    const y = Math.random() * (gameHeight - targetSize);
-    const dx = (Math.random() - 0.5) * targetSpeed;
-    const dy = (Math.random() - 0.5) * targetSpeed;
-    const powerUpTypes: PowerUpType[] = ['extra-life', 'time-freeze', 'double-points', 'skull', 'lightning', 'lava-shield'];
-    const type: PowerUpType = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
-    const newPowerUp: PowerUp = {
-      x,
-      y,
-      dx,
-      dy,
-      id: Date.now() + Math.random(),
-      type,
-      spawnTime: Date.now(),
-    };
-    setPowerUps((prevPowerUps) => [...prevPowerUps, newPowerUp]);
-
-    setTimeout(() => {
-      setPowerUps((prevPowerUps) => prevPowerUps.filter((powerUp) => powerUp.id !== newPowerUp.id));
-    }, powerUpDuration);
-  };
-
-  const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
-    if (!gameAreaRef.current) return;
-    const rect = gameAreaRef.current.getBoundingClientRect();
-    setMousePosition({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    });
   };
 
   const handleMouseClick = (e: MouseEvent<HTMLDivElement>) => {
