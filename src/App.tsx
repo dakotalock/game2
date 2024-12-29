@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useRef, MouseEvent } from 'react';
-import AudioPlayer from 'react-h5-audio-player';
-import 'react-h5-audio-player/lib/styles.css';
-import './App.css';
+import './App.css'; // Ensure your CSS file is imported
 
 interface Target {
   x: number;
@@ -254,8 +252,6 @@ const Game: React.FC = () => {
     const clickX = e.clientX - rect.left;
     const clickY = e.clientY - rect.top;
 
-    console.log('Mouse Click Position:', { x: clickX, y: clickY }); // Debugging log
-
     setLaser({
       startX: mousePosition.x,
       startY: mousePosition.y,
@@ -288,8 +284,6 @@ const Game: React.FC = () => {
     const angle = Math.atan2(dy, dx);
     const length = Math.sqrt(dx * dx + dy * dy);
     const opacity = Math.max(0, 1 - (age / 300));
-
-    console.log('Laser Position:', { startX: laser.startX, startY: laser.startY, endX: laser.endX, endY: laser.endY }); // Debugging log
 
     return (
       <>
@@ -502,31 +496,28 @@ const Game: React.FC = () => {
         onMouseMove={handleMouseMove}
         onClick={handleMouseClick}
       >
-        {targets.map((target) => {
-          const backgroundColor = target.type === 'slime' ? '#66CCFF' : target.type === 'mini' ? '#FF66CC' : target.color;
-          const borderRadius = target.type === 'slime' || target.type === 'mini' ? '50%' : '10%';
-          return (
-            <div
-              key={target.id}
-              className="target"
-              style={{
-                position: 'absolute',
-                left: target.x,
-                top: target.y,
-                width: target.size,
-                height: target.size,
-                backgroundColor: backgroundColor,
-                borderRadius: borderRadius,
-                transform: `rotate(${target.rotation}deg)`,
-                boxShadow: `0 0 10px ${target.color}`,
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleTargetClick(target.id);
-              }}
-            />
-          );
-        })}
+        {targets.map((target) => (
+          <div
+            key={target.id}
+            className="target"
+            style={{
+              position: 'absolute',
+              left: target.x,
+              top: target.y,
+              width: target.size,
+              height: target.size,
+              backgroundColor: target.type === 'slime' ? '#66CCFF' : target.type === 'mini' ? '#FF66CC' : target.color,
+              borderRadius: target.type === 'slime' || target.type === 'mini' ? '50%' : '10%',
+              transform: `rotate(${target.rotation}deg)`,
+              boxShadow: `0 0 10px ${target.color}`,
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleTargetClick(target.id);
+              handleMouseClick(e);
+            }}
+          />
+        ))}
 
         {powerUps.map((powerUp) => (
           <div
@@ -540,6 +531,7 @@ const Game: React.FC = () => {
             onClick={(e) => {
               e.stopPropagation();
               handlePowerUpClick(powerUp.id);
+              handleMouseClick(e);
             }}
           >
             {powerUp.type === 'extra-life' ? '+' :
