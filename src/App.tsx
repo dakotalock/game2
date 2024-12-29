@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, MouseEvent } from 'react';
-import './App.css'; // Ensure your CSS file is imported
+import AudioPlayer from 'react-h5-audio-player';
+import 'react-h5-audio-player/lib/styles.css';
+import './App.css';
 
 interface Target {
   x: number;
@@ -37,6 +39,8 @@ const Game: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [difficulty, setDifficulty] = useState<'easy' | 'normal' | 'hard'>('normal');
   const [showInstructions, setShowInstructions] = useState<boolean>(false);
+  const audioPlayerRef = useRef<any>(null);
+  const soundCloudRef = useRef<HTMLIFrameElement>(null);
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const targetSize: number = 30;
   const gameWidth: number = 600;
@@ -55,6 +59,42 @@ const Game: React.FC = () => {
     endY: number;
     timestamp: number;
   } | null>(null);
+
+  const songs = [
+    { id: 1, name: 'Lo-Fi Chill Beats', src: 'https://soundcloud.com/oxinym/sets/lofi-beats-royalty-free' },
+    { id: 2, name: 'Song 1', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
+    { id: 3, name: 'Song 2', src: 'https://files.freemusicarchive.org/storage-freemusicarchive-org/music/ccCommunity/Chad_Crouch/Arps/Chad_Crouch_-_Algorithms.mp3' },
+    { id: 4, name: 'Song 3', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3' },
+    { id: 5, name: 'Song 4', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3' },
+    { id: 6, name: 'Song 5', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3' },
+  ];
+
+  const [selectedSong, setSelectedSong] = useState(songs[0]);
+
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://w.soundcloud.com/player/api.js';
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (gameStarted) {
+      stopMusic();
+      startMusic();
+    }
+  }, [selectedSong]);
+
+  const handleSongChange = (id: number) => {
+    const song = songs.find((song) => song.id === id);
+    if (song) {
+      setSelectedSong(song);
+    }
+  };
 
   const getRandomColor = (): string => {
     const letters = '0123456789ABCDEF';
@@ -108,7 +148,7 @@ const Game: React.FC = () => {
     setTargets((prevTargets) => [...prevTargets, newTarget]);
   };
 
-  const handleTargetClick = (id: number) => {
+  const handleTargetClick = (id: number, e: MouseEvent<HTMLDivElement>) => {
     if (gameOver) return;
     setTargets((prevTargets) => {
       const updatedTargets = prevTargets.filter((target) => target.id !== id);
@@ -153,9 +193,10 @@ const Game: React.FC = () => {
     });
     setScore((prevScore) => prevScore + (combo > 5 ? 2 : 1));
     setCombo((prevCombo) => prevCombo + 1);
+    triggerLaser(e);
   };
 
-  const handlePowerUpClick = (id: number) => {
+  const handlePowerUpClick = (id: number, e: MouseEvent<HTMLDivElement>) => {
     if (gameOver) return;
     const clickedPowerUp = powerUps.find((pu) => pu.id === id);
     if (!clickedPowerUp) return;
@@ -192,6 +233,7 @@ const Game: React.FC = () => {
         if (lives <= 1) {
           setGameOver(true);
           setGameStarted(false);
+          stopMusic();
         }
         break;
       case 'lightning':
@@ -209,6 +251,7 @@ const Game: React.FC = () => {
       default:
         break;
     }
+    triggerLaser(e);
   };
 
   const spawnPowerUp = () => {
@@ -243,15 +286,11 @@ const Game: React.FC = () => {
     });
   };
 
-  const handleMouseClick = (e: MouseEvent<HTMLDivElement>) => {
-    if (gameOver) return;
-
+  const triggerLaser = (e: MouseEvent<HTMLDivElement>) => {
     if (!gameAreaRef.current) return;
     const rect = gameAreaRef.current.getBoundingClientRect();
-
     const clickX = e.clientX - rect.left;
     const clickY = e.clientY - rect.top;
-
     setLaser({
       startX: mousePosition.x,
       startY: mousePosition.y,
@@ -259,12 +298,12 @@ const Game: React.FC = () => {
       endY: clickY,
       timestamp: Date.now(),
     });
-
     setLives((prevLives) => {
       const newLives = prevLives - 1;
       if (newLives <= 0) {
         setGameOver(true);
         setGameStarted(false);
+        stopMusic();
       }
       return newLives;
     });
@@ -288,50 +327,65 @@ const Game: React.FC = () => {
     return (
       <>
         <div
-          className="laser"
+          className="absolute pointer-events-none"
           style={{
-            position: 'absolute',
-            left: laser.startX,
-            top: laser.startY,
+            left: `${laser.startX}px`,
+            top: `${laser.startY}px`,
             transform: `rotate(${angle}rad)`,
             transformOrigin: '0% 50%',
             width: `${length}px`,
             height: '3px',
             background: 'linear-gradient(90deg, rgba(255,0,0,1) 0%, rgba(255,107,107,0.8) 100%)',
             boxShadow: '0 0 10px #ff0000, 0 0 20px #ff6b6b',
-            opacity,
+            opacity: opacity,
             transition: 'opacity 0.1s ease-out',
             zIndex: 1000,
           }}
         />
         <div
-          className="impact"
+          className="absolute pointer-events-none"
           style={{
-            position: 'absolute',
-            left: laser.endX - 15,
-            top: laser.endY - 15,
+            left: `${laser.endX - 15}px`,
+            top: `${laser.endY - 15}px`,
             width: '30px',
             height: '30px',
             background: 'radial-gradient(circle, rgba(255,107,107,0.8) 0%, transparent 70%)',
-            opacity,
+            opacity: opacity,
             animation: 'impact 0.3s ease-out',
           }}
         />
         <div
-          className="muzzle-flash"
+          className="absolute pointer-events-none"
           style={{
-            position: 'absolute',
-            left: laser.startX - 8,
-            top: laser.startY - 8,
+            left: `${laser.startX - 8}px`,
+            top: `${laser.startY - 8}px`,
             width: '16px',
             height: '16px',
             background: 'radial-gradient(circle, #ffffff 0%, #ff0000 50%, transparent 70%)',
-            opacity,
+            opacity: opacity,
             animation: 'muzzleFlash 0.2s ease-out',
           }}
         />
       </>
     );
+  };
+
+  const startMusic = () => {
+    if (selectedSong.id === 1 && soundCloudRef.current) {
+      const widget = (window as any).SC.Widget(soundCloudRef.current);
+      widget.play();
+    } else if (audioPlayerRef.current) {
+      audioPlayerRef.current.audio.current.play();
+    }
+  };
+
+  const stopMusic = () => {
+    if (selectedSong.id === 1 && soundCloudRef.current) {
+      const widget = (window as any).SC.Widget(soundCloudRef.current);
+      widget.pause();
+    } else if (audioPlayerRef.current) {
+      audioPlayerRef.current.audio.current.pause();
+    }
   };
 
   const startGame = () => {
@@ -342,6 +396,7 @@ const Game: React.FC = () => {
     setPowerUps([]);
     setCombo(0);
     setGameStarted(true);
+    startMusic();
   };
 
   const resetGame = () => {
@@ -352,6 +407,7 @@ const Game: React.FC = () => {
     setTargets([]);
     setPowerUps([]);
     setCombo(0);
+    stopMusic();
   };
 
   useEffect(() => {
@@ -392,6 +448,7 @@ const Game: React.FC = () => {
               if (newLives <= 0) {
                 setGameOver(true);
                 setGameStarted(false);
+                stopMusic();
               }
               return Math.max(newLives, 0);
             });
@@ -485,16 +542,40 @@ const Game: React.FC = () => {
         </div>
       )}
 
+      <div className="hidden">
+        {selectedSong.id === 1 ? (
+          <iframe
+            ref={soundCloudRef}
+            width="0"
+            height="0"
+            scrolling="no"
+            frameBorder="no"
+            allow="autoplay"
+            src={`https://w.soundcloud.com/player/?url=${encodeURIComponent(selectedSong.src)}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true`}
+          ></iframe>
+        ) : (
+          <AudioPlayer
+            ref={audioPlayerRef}
+            src={selectedSong.src}
+            autoPlay={false}
+            loop={true}
+            volume={0.5}
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
+          />
+        )}
+      </div>
+
       <div
         ref={gameAreaRef}
         className="game-area"
         style={{
-          width: `${gameWidth}px`,
-          height: `${gameHeight}px`,
+          width: gameWidth,
+          height: gameHeight,
           position: 'relative',
         }}
         onMouseMove={handleMouseMove}
-        onClick={handleMouseClick}
+        onClick={triggerLaser}
       >
         {targets.map((target) => (
           <div
@@ -502,10 +583,10 @@ const Game: React.FC = () => {
             className="target"
             style={{
               position: 'absolute',
-              left: target.x,
-              top: target.y,
-              width: target.size,
-              height: target.size,
+              left: `${target.x}px`,
+              top: `${target.y}px`,
+              width: `${target.size}px`,
+              height: `${target.size}px`,
               backgroundColor: target.type === 'slime' ? '#66CCFF' : target.type === 'mini' ? '#FF66CC' : target.color,
               borderRadius: target.type === 'slime' || target.type === 'mini' ? '50%' : '10%',
               transform: `rotate(${target.rotation}deg)`,
@@ -513,8 +594,7 @@ const Game: React.FC = () => {
             }}
             onClick={(e) => {
               e.stopPropagation();
-              handleTargetClick(target.id);
-              handleMouseClick(e);
+              handleTargetClick(target.id, e);
             }}
           />
         ))}
@@ -525,13 +605,12 @@ const Game: React.FC = () => {
             className={`power-up power-up-${powerUp.type}`}
             style={{
               position: 'absolute',
-              left: powerUp.x,
-              top: powerUp.y,
+              left: `${powerUp.x}px`,
+              top: `${powerUp.y}px`,
             }}
             onClick={(e) => {
               e.stopPropagation();
-              handlePowerUpClick(powerUp.id);
-              handleMouseClick(e);
+              handlePowerUpClick(powerUp.id, e);
             }}
           >
             {powerUp.type === 'extra-life' ? '+' :
@@ -546,8 +625,8 @@ const Game: React.FC = () => {
           className="crosshair"
           style={{
             position: 'absolute',
-            left: mousePosition.x - 6,
-            top: mousePosition.y - 6,
+            left: `${mousePosition.x - 6}px`,
+            top: `${mousePosition.y - 6}px`,
           }}
         />
         {renderLaser()}
@@ -610,6 +689,19 @@ const Game: React.FC = () => {
           </div>
         )}
       </div>
+
+      <select
+        value={selectedSong.id.toString()}
+        onChange={(e) => {
+          const selectedId = parseInt(e.target.value);
+          setSelectedSong(songs.find(song => song.id === selectedId) || songs[0]);
+        }}
+        className="song-selector"
+      >
+        {songs.map(song => (
+          <option key={song.id} value={song.id.toString()}>{song.name}</option>
+        ))}
+      </select>
     </div>
   );
 };
