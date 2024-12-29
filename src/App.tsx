@@ -332,14 +332,11 @@ const Game: React.FC = () => {
         <div
           className="absolute pointer-events-none"
           style={{
-            left: `${laser.startX}px`,
-            top: `${laser.startY}px`,
+            transform: `translate(${laser.startX}px, ${laser.startY}px) rotate(${angle}rad)`,
             width: `${length}px`,
             height: '3px',
             background: 'linear-gradient(90deg, rgba(255,0,0,1) 0%, rgba(255,107,107,0.8) 100%)',
             boxShadow: '0 0 10px #ff0000, 0 0 20px #ff6b6b',
-            transform: `rotate(${angle}rad)`,
-            transformOrigin: '0 50%',
             opacity,
             transition: 'opacity 0.1s ease-out',
             zIndex: 1000,
@@ -348,26 +345,22 @@ const Game: React.FC = () => {
         <div
           className="absolute pointer-events-none"
           style={{
-            left: `${laser.endX - 15}px`,
-            top: `${laser.endY - 15}px`,
+            transform: `translate(${laser.endX - 15}px, ${laser.endY - 15}px)`,
             width: '30px',
             height: '30px',
             background: 'radial-gradient(circle, rgba(255,107,107,0.8) 0%, transparent 70%)',
             opacity,
-            transform: 'scale(1)',
             animation: 'impact 0.3s ease-out',
           }}
         />
         <div
           className="absolute pointer-events-none"
           style={{
-            left: `${laser.startX - 8}px`,
-            top: `${laser.startY - 8}px`,
+            transform: `translate(${laser.startX - 8}px, ${laser.startY - 8}px)`,
             width: '16px',
             height: '16px',
             background: 'radial-gradient(circle, #ffffff 0%, #ff0000 50%, transparent 70%)',
             opacity,
-            transform: 'scale(1)',
             animation: 'muzzleFlash 0.2s ease-out',
           }}
         />
