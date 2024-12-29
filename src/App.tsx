@@ -193,7 +193,6 @@ const Game: React.FC = () => {
     });
     setScore((prevScore) => prevScore + (combo > 5 ? 2 : 1));
     setCombo((prevCombo) => prevCombo + 1);
-    handleMouseClick(e);
   };
 
   const handlePowerUpClick = (id: number, e: MouseEvent<HTMLDivElement>) => {
@@ -251,7 +250,6 @@ const Game: React.FC = () => {
       default:
         break;
     }
-    handleMouseClick(e);
   };
 
   const spawnPowerUp = () => {
@@ -295,22 +293,46 @@ const Game: React.FC = () => {
     const clickX = e.clientX - rect.left;
     const clickY = e.clientY - rect.top;
 
+    // Check if the click hit a target
+    const hitTarget = targets.some((target) => {
+      const targetCenterX = target.x + target.size / 2;
+      const targetCenterY = target.y + target.size / 2;
+      const distance = Math.sqrt(
+        Math.pow(clickX - targetCenterX, 2) + Math.pow(clickY - targetCenterY, 2)
+      );
+      return distance <= target.size / 2;
+    });
+
+    // Check if the click hit a power-up
+    const hitPowerUp = powerUps.some((powerUp) => {
+      const powerUpCenterX = powerUp.x + targetSize / 2;
+      const powerUpCenterY = powerUp.y + targetSize / 2;
+      const distance = Math.sqrt(
+        Math.pow(clickX - powerUpCenterX, 2) + Math.pow(clickY - powerUpCenterY, 2)
+      );
+      return distance <= targetSize / 2;
+    });
+
+    // Only decrease lives if the click missed both targets and power-ups
+    if (!hitTarget && !hitPowerUp) {
+      setLives((prevLives) => {
+        const newLives = prevLives - 1;
+        if (newLives <= 0) {
+          setGameOver(true);
+          setGameStarted(false);
+          stopMusic();
+        }
+        return newLives;
+      });
+    }
+
+    // Trigger the laser animation
     setLaser({
       startX: mousePosition.x,
       startY: mousePosition.y,
       endX: clickX,
       endY: clickY,
       timestamp: Date.now(),
-    });
-
-    setLives((prevLives) => {
-      const newLives = prevLives - 1;
-      if (newLives <= 0) {
-        setGameOver(true);
-        setGameStarted(false);
-        stopMusic();
-      }
-      return newLives;
     });
   };
 
