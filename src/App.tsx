@@ -12,7 +12,7 @@ interface Target {
   color: string;
   rotation: number;
   spawnTime: number;
-  type: 'normal' | 'slime' | 'mini'; // Updated to include 'mini'
+  type: 'normal' | 'slime' | 'mini';
   size: number;
 }
 
@@ -52,8 +52,11 @@ const Game: React.FC = () => {
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const targetRotationSpeed: number = 2;
 
+  // New state for laser animation
+  const [laser, setLaser] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
+
   const songs = [
-    { id: 1, name: 'Lo-Fi Chill Beats', src: 'https://soundcloud.com/oxinym/sets/lofi-beats-royalty-free' }, // SoundCloud playlist
+    { id: 1, name: 'Lo-Fi Chill Beats', src: 'https://soundcloud.com/oxinym/sets/lofi-beats-royalty-free' },
     { id: 2, name: 'Song 1', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
     { id: 3, name: 'Song 2', src: 'https://files.freemusicarchive.org/storage-freemusicarchive-org/music/ccCommunity/Chad_Crouch/Arps/Chad_Crouch_-_Algorithms.mp3' },
     { id: 4, name: 'Song 3', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3' },
@@ -61,7 +64,7 @@ const Game: React.FC = () => {
     { id: 6, name: 'Song 5', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3' },
   ];
 
-  const [selectedSong, setSelectedSong] = useState(songs[0]); // Default to first song in the list
+  const [selectedSong, setSelectedSong] = useState(songs[0]);
 
   // Load SoundCloud SDK
   useEffect(() => {
@@ -78,8 +81,8 @@ const Game: React.FC = () => {
   // Handle song change
   useEffect(() => {
     if (gameStarted) {
-      stopMusic(); // Stop the current player
-      startMusic(); // Start the new player
+      stopMusic();
+      startMusic();
     }
   }, [selectedSong]);
 
@@ -150,7 +153,6 @@ const Game: React.FC = () => {
       if (clickedTarget) {
         switch (clickedTarget.type) {
           case 'slime':
-            // Split into two mini targets
             const newMiniTarget1: Target = {
               x: clickedTarget.x,
               y: clickedTarget.y,
@@ -177,13 +179,10 @@ const Game: React.FC = () => {
             };
             return [...updatedTargets, newMiniTarget1, newMiniTarget2];
           case 'mini':
-            // Handle mini target click
             return updatedTargets;
           case 'normal':
-            // Handle normal target click
             return updatedTargets;
           default:
-            // This should never happen
             return updatedTargets;
         }
       }
@@ -282,8 +281,28 @@ const Game: React.FC = () => {
     });
   };
 
-  const handleGameAreaClick = () => {
+  const handleGameAreaClick = (e: MouseEvent<HTMLDivElement>) => {
     if (gameOver) return;
+
+    // Get click position relative to the game area
+    const rect = gameAreaRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const x2 = e.clientX - rect.left;
+    const y2 = e.clientY - rect.top;
+
+    // Set laser coordinates (from cursor to click position)
+    setLaser({
+      x1: mousePosition.x,
+      y1: mousePosition.y,
+      x2,
+      y2,
+    });
+
+    // Remove laser after animation ends
+    setTimeout(() => setLaser(null), 300); // Match the duration of the CSS animation
+
+    // Handle lives reduction
     setLives((prevLives) => {
       const newLives = prevLives - 1;
       if (newLives <= 0) {
@@ -342,11 +361,9 @@ const Game: React.FC = () => {
           const updatedTargets = prevTargets.map((target) => {
             let { x, y, dx, dy } = target;
 
-            // Update position
             x += dx;
             y += dy;
 
-            // Bounce off walls
             if (x < 0 || x > gameWidth - target.size) {
               dx = -dx;
               x = x < 0 ? 0 : gameWidth - target.size;
@@ -366,7 +383,6 @@ const Game: React.FC = () => {
             };
           });
 
-          // Check for expired targets (45 seconds)
           const expiredTargets = updatedTargets.filter(
             (target) => Date.now() - target.spawnTime > 45000
           );
@@ -389,16 +405,13 @@ const Game: React.FC = () => {
           return filteredTargets;
         });
 
-        // Add movement for power-ups
         setPowerUps((prevPowerUps) => {
           const updatedPowerUps = prevPowerUps.map((powerUp) => {
             let { x, y, dx, dy } = powerUp;
 
-            // Update position
             x += dx;
             y += dy;
 
-            // Bounce off walls for power-ups
             if (x < 0 || x > gameWidth - targetSize) {
               dx = -dx;
               x = x < 0 ? 0 : gameWidth - targetSize;
@@ -434,6 +447,26 @@ const Game: React.FC = () => {
       };
     }
   }, [gameStarted, gameOver]);
+
+  // Render laser effect
+  const renderLaser = () => {
+    if (!laser) return null;
+
+    return (
+      <div
+        className="laser"
+        style={{
+          position: 'absolute',
+          left: laser.x1,
+          top: laser.y1,
+          width: Math.hypot(laser.x2 - laser.x1, laser.y2 - laser.y1),
+          height: '2px',
+          transformOrigin: '0 0',
+          transform: `rotate(${Math.atan2(laser.y2 - laser.y1, laser.x2 - laser.x1)}rad)`,
+        }}
+      />
+    );
+  };
 
   return (
     <div className="flex-container">
@@ -561,6 +594,9 @@ const Game: React.FC = () => {
             top: mousePosition.y - 6,
           }}
         />
+
+        {/* Render laser */}
+        {renderLaser()}
       </div>
 
       <div className="score-display">
