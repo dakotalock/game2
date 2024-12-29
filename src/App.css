@@ -273,3 +273,25 @@ h2 {
     padding: 0.5rem 1rem;
   }
 }
+
+/* Laser Animation */
+.laser {
+  background: linear-gradient(to right, rgba(255, 0, 0, 0.8), rgba(255, 255, 0, 0.8));
+  box-shadow: 0 0 5px rgba(255, 0, 0, 0.8), 0 0 10px rgba(255, 255, 0, 0.8);
+  animation: laserAnimation 0.3s ease-out;
+}
+
+@keyframes laserAnimation {
+  0% {
+    opacity: 1;
+    transform: scaleX(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleX(1);
+  }
+}
