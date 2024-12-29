@@ -288,35 +288,104 @@ const Game: React.FC = () => {
   };
 
   const handleGameAreaClick = (e: MouseEvent<HTMLDivElement>) => {
-    if (gameOver) return;
+  if (gameOver) return;
 
-    const rect = gameAreaRef.current?.getBoundingClientRect();
-    if (!rect) return;
+  const rect = gameAreaRef.current?.getBoundingClientRect();
+  if (!rect) return;
 
-    // Get click coordinates relative to game area
-    const clickX = e.clientX - rect.left;
-    const clickY = e.clientY - rect.top;
+  // Calculate click coordinates relative to game area
+  const clickX = e.clientX - rect.left;
+  const clickY = e.clientY - rect.top;
 
-    // Set laser with current timestamp
-    setLaser({
-      startX: mousePosition.x,
-      startY: mousePosition.y,
-      endX: clickX,
-      endY: clickY,
-      timestamp: Date.now(),
-    });
+  // Set laser starting from crosshair position to click position
+  setLaser({
+    startX: mousePosition.x,
+    startY: mousePosition.y,
+    endX: clickX,
+    endY: clickY,
+    timestamp: Date.now(),
+  });
 
-    // Handle lives reduction
-    setLives((prevLives) => {
-      const newLives = prevLives - 1;
-      if (newLives <= 0) {
-        setGameOver(true);
-        setGameStarted(false);
-        stopMusic();
-      }
-      return newLives;
-    });
-  };
+  // Handle lives reduction
+  setLives((prevLives) => {
+    const newLives = prevLives - 1;
+    if (newLives <= 0) {
+      setGameOver(true);
+      setGameStarted(false);
+      stopMusic();
+    }
+    return newLives;
+  });
+};
+
+const renderLaser = () => {
+  if (!laser) return null;
+
+  // Calculate if laser should still be visible (300ms duration)
+  const age = Date.now() - laser.timestamp;
+  if (age > 300) {
+    setLaser(null);
+    return null;
+  }
+
+  // Calculate angle and length
+  const dx = laser.endX - laser.startX;
+  const dy = laser.endY - laser.startY;
+  const angle = Math.atan2(dy, dx);
+  const length = Math.sqrt(dx * dx + dy * dy);
+
+  // Calculate opacity based on age
+  const opacity = Math.max(0, 1 - (age / 300));
+
+  return (
+    <>
+      {/* Main laser beam */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          left: laser.startX,
+          top: laser.startY,
+          width: `${length}px`,
+          height: '3px',
+          background: 'linear-gradient(90deg, rgba(255,0,0,1) 0%, rgba(255,107,107,0.8) 100%)',
+          boxShadow: '0 0 10px #ff0000, 0 0 20px #ff6b6b',
+          transform: `rotate(${angle}rad)`,
+          transformOrigin: '0 50%',
+          opacity,
+          transition: 'opacity 0.1s ease-out',
+        }}
+      />
+      {/* Impact effect */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          left: laser.endX - 15,
+          top: laser.endY - 15,
+          width: '30px',
+          height: '30px',
+          background: 'radial-gradient(circle, rgba(255,107,107,0.8) 0%, transparent 70%)',
+          opacity,
+          transform: 'scale(1)',
+          animation: 'impact 0.3s ease-out',
+        }}
+      />
+      {/* Muzzle flash */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          left: laser.startX - 8,
+          top: laser.startY - 8,
+          width: '16px',
+          height: '16px',
+          background: 'radial-gradient(circle, #ffffff 0%, #ff0000 50%, transparent 70%)',
+          opacity,
+          transform: 'scale(1)',
+          animation: 'muzzleFlash 0.2s ease-out',
+        }}
+      />
+    </>
+  );
+};
 
   const startMusic = () => {
     if (selectedSong.id === 1 && soundCloudRef.current) {
