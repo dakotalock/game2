@@ -52,7 +52,6 @@ const Game: React.FC = () => {
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const targetRotationSpeed: number = 2;
 
-  // New state for laser animation
   const [laser, setLaser] = useState<{
     startX: number;
     startY: number;
@@ -72,7 +71,6 @@ const Game: React.FC = () => {
 
   const [selectedSong, setSelectedSong] = useState(songs[0]);
 
-  // Load SoundCloud SDK
   useEffect(() => {
     const script = document.createElement('script');
     script.src = 'https://w.soundcloud.com/player/api.js';
@@ -84,7 +82,6 @@ const Game: React.FC = () => {
     };
   }, []);
 
-  // Handle song change
   useEffect(() => {
     if (gameStarted) {
       stopMusic();
@@ -293,11 +290,9 @@ const Game: React.FC = () => {
     const rect = gameAreaRef.current?.getBoundingClientRect();
     if (!rect) return;
 
-    // Calculate click coordinates relative to game area
     const clickX = e.clientX - rect.left;
     const clickY = e.clientY - rect.top;
 
-    // Set laser starting from crosshair position to click position
     setLaser({
       startX: mousePosition.x,
       startY: mousePosition.y,
@@ -306,7 +301,6 @@ const Game: React.FC = () => {
       timestamp: Date.now(),
     });
 
-    // Handle lives reduction
     setLives((prevLives) => {
       const newLives = prevLives - 1;
       if (newLives <= 0) {
@@ -321,30 +315,25 @@ const Game: React.FC = () => {
   const renderLaser = () => {
     if (!laser) return null;
 
-    // Calculate if laser should still be visible (300ms duration)
     const age = Date.now() - laser.timestamp;
     if (age > 300) {
       setLaser(null);
       return null;
     }
 
-    // Calculate angle and length
     const dx = laser.endX - laser.startX;
     const dy = laser.endY - laser.startY;
     const angle = Math.atan2(dy, dx);
     const length = Math.sqrt(dx * dx + dy * dy);
-
-    // Calculate opacity based on age
     const opacity = Math.max(0, 1 - (age / 300));
 
     return (
       <>
-        {/* Main laser beam */}
         <div
           className="absolute pointer-events-none"
           style={{
-            left: laser.startX,
-            top: laser.startY,
+            left: `${laser.startX}px`,
+            top: `${laser.startY}px`,
             width: `${length}px`,
             height: '3px',
             background: 'linear-gradient(90deg, rgba(255,0,0,1) 0%, rgba(255,107,107,0.8) 100%)',
@@ -353,14 +342,14 @@ const Game: React.FC = () => {
             transformOrigin: '0 50%',
             opacity,
             transition: 'opacity 0.1s ease-out',
+            zIndex: 1000,
           }}
         />
-        {/* Impact effect */}
         <div
           className="absolute pointer-events-none"
           style={{
-            left: laser.endX - 15,
-            top: laser.endY - 15,
+            left: `${laser.endX - 15}px`,
+            top: `${laser.endY - 15}px`,
             width: '30px',
             height: '30px',
             background: 'radial-gradient(circle, rgba(255,107,107,0.8) 0%, transparent 70%)',
@@ -369,12 +358,11 @@ const Game: React.FC = () => {
             animation: 'impact 0.3s ease-out',
           }}
         />
-        {/* Muzzle flash */}
         <div
           className="absolute pointer-events-none"
           style={{
-            left: laser.startX - 8,
-            top: laser.startY - 8,
+            left: `${laser.startX - 8}px`,
+            top: `${laser.startY - 8}px`,
             width: '16px',
             height: '16px',
             background: 'radial-gradient(circle, #ffffff 0%, #ff0000 50%, transparent 70%)',
