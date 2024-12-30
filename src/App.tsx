@@ -14,6 +14,7 @@ interface Target {
   spawnTime: number;
   type: 'normal' | 'slime' | 'mini';
   size: number;
+  isPopping?: boolean; // New property for animation state
 }
 
 type PowerUpType = 'extra-life' | 'time-freeze' | 'double-points' | 'skull' | 'lightning' | 'lava-shield';
@@ -181,7 +182,7 @@ const Game: React.FC = () => {
   };
 
   const handleMouseClick = (e: MouseEvent<HTMLDivElement>) => {
-    if (gameOver || !gameStarted) return; // Prevent clicks before the game starts
+    if (gameOver || !gameStarted) return;
 
     if (!gameAreaRef.current) return;
     const rect = gameAreaRef.current.getBoundingClientRect();
@@ -248,50 +249,55 @@ const Game: React.FC = () => {
       timestamp: Date.now(),
     });
 
-    // Handle target click logic
-    setTargets((prevTargets) => {
-      const updatedTargets = prevTargets.filter((target) => target.id !== id);
-      const clickedTarget = prevTargets.find((target) => target.id === id);
-      if (clickedTarget) {
-        switch (clickedTarget.type) {
-          case 'slime':
-            const newMiniTarget1: Target = {
-              x: clickedTarget.x,
-              y: clickedTarget.y,
-              dx: (Math.random() - 0.5) * targetSpeed,
-              dy: (Math.random() - 0.5) * targetSpeed,
-              id: Date.now() + Math.random(),
-              color: getRandomColor(),
-              rotation: 0,
-              spawnTime: Date.now(),
-              type: 'mini',
-              size: targetSize / 2,
-            };
-            const newMiniTarget2: Target = {
-              x: clickedTarget.x,
-              y: clickedTarget.y,
-              dx: (Math.random() - 0.5) * targetSpeed,
-              dy: (Math.random() - 0.5) * targetSpeed,
-              id: Date.now() + Math.random(),
-              color: getRandomColor(),
-              rotation: 0,
-              spawnTime: Date.now(),
-              type: 'mini',
-              size: targetSize / 2,
-            };
-            return [...updatedTargets, newMiniTarget1, newMiniTarget2];
-          case 'mini':
-            return updatedTargets;
-          case 'normal':
-            return updatedTargets;
-          default:
-            return updatedTargets;
+    // First set the popping animation
+    setTargets((prevTargets) =>
+      prevTargets.map((target) =>
+        target.id === id ? { ...target, isPopping: true } : target
+      )
+    );
+
+    // Remove target after animation
+    setTimeout(() => {
+      setTargets((prevTargets) => {
+        const updatedTargets = prevTargets.filter((target) => target.id !== id);
+        const clickedTarget = prevTargets.find((target) => target.id === id);
+        if (clickedTarget) {
+          switch (clickedTarget.type) {
+            case 'slime':
+              const newMiniTarget1: Target = {
+                x: clickedTarget.x,
+                y: clickedTarget.y,
+                dx: (Math.random() - 0.5) * targetSpeed,
+                dy: (Math.random() - 0.5) * targetSpeed,
+                id: Date.now() + Math.random(),
+                color: getRandomColor(),
+                rotation: 0,
+                spawnTime: Date.now(),
+                type: 'mini',
+                size: targetSize / 2,
+              };
+              const newMiniTarget2: Target = {
+                x: clickedTarget.x,
+                y: clickedTarget.y,
+                dx: (Math.random() - 0.5) * targetSpeed,
+                dy: (Math.random() - 0.5) * targetSpeed,
+                id: Date.now() + Math.random(),
+                color: getRandomColor(),
+                rotation: 0,
+                spawnTime: Date.now(),
+                type: 'mini',
+                size: targetSize / 2,
+              };
+              return [...updatedTargets, newMiniTarget1, newMiniTarget2];
+            default:
+              return updatedTargets;
+          }
         }
-      }
-      return updatedTargets;
-    });
-    setScore((prevScore) => prevScore + (combo > 5 ? 2 : 1));
-    setCombo((prevCombo) => prevCombo + 1);
+        return updatedTargets;
+      });
+      setScore((prevScore) => prevScore + (combo > 5 ? 2 : 1));
+      setCombo((prevCombo) => prevCombo + 1);
+    }, 300); // Match this with CSS animation duration
   };
 
   const handlePowerUpClick = (id: number, e: MouseEvent<HTMLDivElement>) => {
@@ -350,16 +356,34 @@ const Game: React.FC = () => {
         }
         break;
       case 'lightning':
-        const pointsToAddLightning = targets.length;
-        setTargets([]);
-        setScore((prevScore) => prevScore + pointsToAddLightning);
+        // Set isPopping to true for all targets
+        setTargets((currentTargets) =>
+          currentTargets.map((target) => ({ ...target, isPopping: true }))
+        );
+
+        // Remove targets after the animation completes
+        setTimeout(() => {
+          setTargets((currentTargets) => {
+            setScore((prevScore) => prevScore + currentTargets.length);
+            return [];
+          });
+        }, 300); // Match this with CSS animation duration
         break;
       case 'lava-shield':
         const halfLength = Math.ceil(targets.length / 2);
-        const pointsToAddLavaShield = halfLength;
-        setTargets((prevTargets) => prevTargets.slice(halfLength));
-        setScore((prevScore) => prevScore + pointsToAddLavaShield);
-        setLives((prevLives) => prevLives + 2);
+        // Set isPopping to true for the first half of targets
+        setTargets((prevTargets) =>
+          prevTargets.map((target, index) =>
+            index < halfLength ? { ...target, isPopping: true } : target
+          )
+        );
+
+        // Remove the first half of targets after the animation completes
+        setTimeout(() => {
+          setTargets((prevTargets) => prevTargets.slice(halfLength));
+          setScore((prevScore) => prevScore + halfLength);
+          setLives((prevLives) => prevLives + 2);
+        }, 300); // Match this with CSS animation duration
         break;
       default:
         break;
@@ -512,23 +536,34 @@ const Game: React.FC = () => {
           const expiredTargets = updatedTargets.filter(
             (target) => Date.now() - target.spawnTime > 45000
           );
+
+          // Add popping animation to expired targets
           if (expiredTargets.length > 0) {
-            setLives((prevLives) => {
-              const newLives = prevLives - expiredTargets.length;
-              if (newLives <= 0) {
-                setGameOver(true);
-                setGameStarted(false);
-                stopMusic();
+            updatedTargets.forEach((target) => {
+              if (expiredTargets.find((et) => et.id === target.id)) {
+                target.isPopping = true;
               }
-              return Math.max(newLives, 0);
             });
+
+            // Remove expired targets after the animation completes
+            setTimeout(() => {
+              setTargets((current) =>
+                current.filter((t) => !expiredTargets.find((et) => et.id === t.id))
+              );
+
+              setLives((prevLives) => {
+                const newLives = prevLives - expiredTargets.length;
+                if (newLives <= 0) {
+                  setGameOver(true);
+                  setGameStarted(false);
+                  stopMusic();
+                }
+                return Math.max(newLives, 0);
+              });
+            }, 300); // Match this with CSS animation duration
           }
 
-          const filteredTargets = updatedTargets.filter(
-            (target) => Date.now() - target.spawnTime <= 45000
-          );
-
-          return filteredTargets;
+          return updatedTargets;
         });
 
         setPowerUps((prevPowerUps) => {
@@ -651,7 +686,7 @@ const Game: React.FC = () => {
         {targets.map((target) => (
           <div
             key={target.id}
-            className="target"
+            className={`target ${target.isPopping ? 'popping' : ''}`}
             style={{
               position: 'absolute',
               left: `${target.x}px`,
@@ -773,11 +808,11 @@ const Game: React.FC = () => {
           value={selectedSong.id.toString()}
           onChange={(e) => {
             const selectedId = parseInt(e.target.value);
-            setSelectedSong(songs.find(song => song.id === selectedId) || songs[0]);
+            setSelectedSong(songs.find((song) => song.id === selectedId) || songs[0]);
           }}
           className="song-selector"
         >
-          {songs.map(song => (
+          {songs.map((song) => (
             <option key={song.id} value={song.id.toString()}>{song.name}</option>
           ))}
         </select>
