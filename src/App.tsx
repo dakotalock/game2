@@ -37,7 +37,7 @@ const Game: React.FC = () => {
   const [powerUps, setPowerUps] = useState<PowerUp[]>([]);
   const [combo, setCombo] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  const [difficulty, setDifficulty] = useState<'easy' | 'normal' | 'hard'>('normal');
+  const [difficulty, setDifficulty] = useState<'gabriel' | 'easy' | 'normal' | 'hard'>('normal');
   const [showInstructions, setShowInstructions] = useState<boolean>(false);
   const audioPlayerRef = useRef<any>(null);
   const soundCloudRef = useRef<HTMLIFrameElement>(null);
@@ -181,7 +181,7 @@ const Game: React.FC = () => {
   };
 
   const handleMouseClick = (e: MouseEvent<HTMLDivElement>) => {
-    if (gameOver) return;
+    if (gameOver || !gameStarted) return; // Prevent clicks before the game starts
 
     if (!gameAreaRef.current) return;
     const rect = gameAreaRef.current.getBoundingClientRect();
@@ -336,7 +336,7 @@ const Game: React.FC = () => {
               dy: (Math.random() - 0.5) * targetSpeed,
             }))
           );
-        }, 3000);
+        }, 5000); // Increased from 3000ms to 5000ms
         break;
       case 'double-points':
         setScore((prevScore) => prevScore + 10);
@@ -370,7 +370,7 @@ const Game: React.FC = () => {
     if (!laser) return null;
 
     const age = Date.now() - laser.timestamp;
-    if (age > 300) {
+    if (age > 600) {
       setLaser(null);
       return null;
     }
@@ -379,7 +379,7 @@ const Game: React.FC = () => {
     const dy = laser.endY - laser.startY;
     const angle = Math.atan2(dy, dx);
     const length = Math.sqrt(dx * dx + dy * dy);
-    const opacity = Math.max(0, 1 - (age / 300));
+    const opacity = Math.max(0, 1 - age / 600);
 
     return (
       <>
@@ -392,9 +392,9 @@ const Game: React.FC = () => {
             transform: `rotate(${angle}rad)`,
             transformOrigin: '0% 50%',
             width: `${length}px`,
-            height: '3px',
+            height: '6px',
             background: 'linear-gradient(90deg, rgba(255,0,0,1) 0%, rgba(255,107,107,0.8) 100%)',
-            boxShadow: '0 0 10px #ff0000, 0 0 20px #ff6b6b',
+            boxShadow: '0 0 20px #ff0000, 0 0 40px #ff6b6b',
             opacity,
             transition: 'opacity 0.1s ease-out',
             zIndex: 1000,
@@ -404,26 +404,26 @@ const Game: React.FC = () => {
           className="impact"
           style={{
             position: 'absolute',
-            left: laser.endX - 15,
-            top: laser.endY - 15,
-            width: '30px',
-            height: '30px',
+            left: laser.endX - 30,
+            top: laser.endY - 30,
+            width: '60px',
+            height: '60px',
             background: 'radial-gradient(circle, rgba(255,107,107,0.8) 0%, transparent 70%)',
             opacity,
-            animation: 'impact 0.3s ease-out',
+            animation: 'impact 0.6s ease-out',
           }}
         />
         <div
           className="muzzle-flash"
           style={{
             position: 'absolute',
-            left: laser.startX - 8,
-            top: laser.startY - 8,
-            width: '16px',
-            height: '16px',
+            left: laser.startX - 16,
+            top: laser.startY - 16,
+            width: '32px',
+            height: '32px',
             background: 'radial-gradient(circle, #ffffff 0%, #ff0000 50%, transparent 70%)',
             opacity,
-            animation: 'muzzleFlash 0.2s ease-out',
+            animation: 'muzzleFlash 0.4s ease-out',
           }}
         />
       </>
@@ -450,7 +450,12 @@ const Game: React.FC = () => {
 
   const startGame = () => {
     setScore(0);
-    setLives(difficulty === 'easy' ? 10 : difficulty === 'normal' ? 3 : 1);
+    setLives(
+      difficulty === 'gabriel' ? 50 : // Gabriel Mode: 50 lives
+      difficulty === 'easy' ? 10 :    // Easy: 10 lives
+      difficulty === 'normal' ? 3 :   // Normal: 3 lives
+      1                              // Hard: 1 life
+    );
     setGameOver(false);
     setTargets([]);
     setPowerUps([]);
@@ -462,7 +467,12 @@ const Game: React.FC = () => {
   const resetGame = () => {
     setGameStarted(false);
     setScore(0);
-    setLives(difficulty === 'easy' ? 10 : difficulty === 'normal' ? 3 : 1);
+    setLives(
+      difficulty === 'gabriel' ? 50 : // Gabriel Mode: 50 lives
+      difficulty === 'easy' ? 10 :    // Easy: 10 lives
+      difficulty === 'normal' ? 3 :   // Normal: 3 lives
+      1                              // Hard: 1 life
+    );
     setGameOver(false);
     setTargets([]);
     setPowerUps([]);
@@ -565,12 +575,12 @@ const Game: React.FC = () => {
   }, [gameStarted, gameOver]);
 
   return (
-    <div className="flex-container">
-      <h1 className="text-5xl font-extrabold mb-8 text-white">Gabriel's Game</h1>
-      <h2 className="text-xl text-gray-400 mt-4">Created by Dakota Lock for Gabriel</h2>
+    <div className="flex-container" style={{ padding: '20px', maxHeight: '100vh', overflow: 'hidden' }}>
+      <h1 className="text-5xl font-extrabold mb-4 text-white">Gabriel's Game</h1>
+      <h2 className="text-xl text-gray-400 mb-6">Created by Dakota Lock for Gabriel</h2>
 
       <button
-        className="instructions-button"
+        className="instructions-button mb-4"
         onClick={() => setShowInstructions(!showInstructions)}
       >
         Instructions
@@ -587,7 +597,7 @@ const Game: React.FC = () => {
           <h3>Power-Ups</h3>
           <ul>
             <li><strong>+</strong>: Extra life</li>
-            <li><strong>❄️</strong>: Freeze targets for 3 seconds</li>
+            <li><strong>❄️</strong>: Freeze targets for 5 seconds</li>
             <li><strong>+10</strong>: Gain 10 points</li>
             <li><strong>⚡️</strong>: Destroy all targets and gain points</li>
             <li><strong>🛡️</strong>: Destroy half the targets, gain points, and gain 2 lives</li>
@@ -633,6 +643,7 @@ const Game: React.FC = () => {
           width: gameWidth,
           height: gameHeight,
           position: 'relative',
+          margin: '0 auto',
         }}
         onMouseMove={handleMouseMove}
         onClick={handleMouseClick}
@@ -667,6 +678,7 @@ const Game: React.FC = () => {
               position: 'absolute',
               left: `${powerUp.x}px`,
               top: `${powerUp.y}px`,
+              backgroundColor: powerUp.type === 'time-freeze' ? 'black' : undefined, // Only freeze power-up is black
             }}
             onClick={(e) => {
               e.stopPropagation();
@@ -692,13 +704,13 @@ const Game: React.FC = () => {
         {renderLaser()}
       </div>
 
-      <div className="score-display">
+      <div className="score-display mt-4">
         <div className="text-xl text-white">Score: {score}</div>
         <div className="text-xl text-white">Lives: {lives}</div>
         <div className="text-xl text-white">Combo: x{combo}</div>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-4">
         {!gameStarted && !gameOver && (
           <div className="flex flex-col items-center space-y-4">
             <button
@@ -708,6 +720,12 @@ const Game: React.FC = () => {
               Start Game
             </button>
             <div className="flex space-x-4">
+              <button
+                className={`difficulty-button ${difficulty === 'gabriel' ? 'active' : ''}`}
+                onClick={() => setDifficulty('gabriel')}
+              >
+                Gabriel Mode
+              </button>
               <button
                 className={`difficulty-button ${difficulty === 'easy' ? 'active' : ''}`}
                 onClick={() => setDifficulty('easy')}
@@ -750,18 +768,20 @@ const Game: React.FC = () => {
         )}
       </div>
 
-      <select
-        value={selectedSong.id.toString()}
-        onChange={(e) => {
-          const selectedId = parseInt(e.target.value);
-          setSelectedSong(songs.find(song => song.id === selectedId) || songs[0]);
-        }}
-        className="song-selector"
-      >
-        {songs.map(song => (
-          <option key={song.id} value={song.id.toString()}>{song.name}</option>
-        ))}
-      </select>
+      <div className="mt-4">
+        <select
+          value={selectedSong.id.toString()}
+          onChange={(e) => {
+            const selectedId = parseInt(e.target.value);
+            setSelectedSong(songs.find(song => song.id === selectedId) || songs[0]);
+          }}
+          className="song-selector"
+        >
+          {songs.map(song => (
+            <option key={song.id} value={song.id.toString()}>{song.name}</option>
+          ))}
+        </select>
+      </div>
     </div>
   );
 };
