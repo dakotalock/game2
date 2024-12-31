@@ -29,6 +29,50 @@ interface PowerUp {
   spawnTime: number;
 }
 
+// GameContainer component to handle responsive sizing
+const GameContainer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    const updateDimensions = () => {
+      if (!containerRef.current) return;
+
+      const baseWidth = 600;
+      const baseHeight = 400;
+      const aspectRatio = baseWidth / baseHeight;
+
+      const containerWidth = Math.min(window.innerWidth * 0.95, baseWidth);
+      const containerHeight = containerWidth / aspectRatio;
+
+      setDimensions({ width: containerWidth, height: containerHeight });
+    };
+
+    updateDimensions();
+    window.addEventListener('resize', updateDimensions);
+    return () => window.removeEventListener('resize', updateDimensions);
+  }, []);
+
+  return (
+    <div className="game-container" ref={containerRef}>
+      <div
+        className="game-area"
+        style={{
+          width: `${dimensions.width}px`,
+          height: `${dimensions.height}px`,
+          position: 'relative',
+          overflow: 'hidden',
+          margin: '0 auto',
+          border: '1px solid #ccc',
+          backgroundColor: '#f0f0f0'
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+};
+
 const Game: React.FC = () => {
   const [score, setScore] = useState<number>(0);
   const [lives, setLives] = useState<number>(0);
@@ -44,8 +88,6 @@ const Game: React.FC = () => {
   const soundCloudRef = useRef<HTMLIFrameElement>(null);
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const targetSize: number = 30;
-  const gameWidth: number = window.innerWidth > 600 ? 600 : window.innerWidth * 0.9;
-  const gameHeight: number = window.innerHeight > 400 ? 400 : window.innerHeight * 0.6;
   const targetSpeed: number = 2;
   const targetSpawnInterval: number = 1500 / 2;
   const powerUpSpawnInterval: number = 5000 / 2;
@@ -107,8 +149,10 @@ const Game: React.FC = () => {
   };
 
   const spawnTarget = () => {
-    const x = Math.random() * (gameWidth - targetSize);
-    const y = Math.random() * (gameHeight - targetSize);
+    if (!gameAreaRef.current) return;
+    const rect = gameAreaRef.current.getBoundingClientRect();
+    const x = Math.random() * (rect.width - targetSize);
+    const y = Math.random() * (rect.height - targetSize);
     const dx = (Math.random() - 0.5) * targetSpeed;
     const dy = (Math.random() - 0.5) * targetSpeed;
     const color = getRandomColor();
@@ -150,8 +194,10 @@ const Game: React.FC = () => {
   };
 
   const spawnPowerUp = () => {
-    const x = Math.random() * (gameWidth - targetSize);
-    const y = Math.random() * (gameHeight - targetSize);
+    if (!gameAreaRef.current) return;
+    const rect = gameAreaRef.current.getBoundingClientRect();
+    const x = Math.random() * (rect.width - targetSize);
+    const y = Math.random() * (rect.height - targetSize);
     const dx = (Math.random() - 0.5) * targetSpeed;
     const dy = (Math.random() - 0.5) * targetSpeed;
     const powerUpTypes: PowerUpType[] = ['extra-life', 'time-freeze', 'double-points', 'skull', 'lightning', 'lava-shield'];
@@ -365,9 +411,7 @@ const Game: React.FC = () => {
           )
         );
         setTimeout(() => {
-          setTargets((prevTargets) => prevTargets.slice(halfLength));
-          setScore((prevScore) => prevScore + halfLength);
-          setLives((prevLives) => prevLives + 2);
+          setTargets((prevTargets) => prevTargets.filter((_, index) => index >= halfLength));
         }, 300);
         break;
       default:
@@ -375,89 +419,8 @@ const Game: React.FC = () => {
     }
   };
 
-  const renderLaser = () => {
-    if (!laser) return null;
-
-    const age = Date.now() - laser.timestamp;
-    if (age > 600) {
-      setLaser(null);
-      return null;
-    }
-
-    const dx = laser.endX - laser.startX;
-    const dy = laser.endY - laser.startY;
-    const angle = Math.atan2(dy, dx);
-    const length = Math.sqrt(dx * dx + dy * dy);
-    const opacity = Math.max(0, 1 - age / 600);
-
-    return (
-      <>
-        <div
-          className="laser"
-          style={{
-            position: 'absolute',
-            left: laser.startX,
-            top: laser.startY,
-            transform: `rotate(${angle}rad)`,
-            transformOrigin: '0% 50%',
-            width: `${length}px`,
-            height: '6px',
-            background: 'linear-gradient(90deg, rgba(255,0,0,1) 0%, rgba(255,107,107,0.8) 100%)',
-            boxShadow: '0 0 20px #ff0000, 0 0 40px #ff6b6b',
-            opacity,
-            transition: 'opacity 0.1s ease-out',
-            zIndex: 1000,
-          }}
-        />
-        <div
-          className="impact"
-          style={{
-            position: 'absolute',
-            left: laser.endX - 30,
-            top: laser.endY - 30,
-            width: '60px',
-            height: '60px',
-            background: 'radial-gradient(circle, rgba(255,107,107,0.8) 0%, transparent 70%)',
-            opacity,
-            animation: 'impact 0.6s ease-out',
-          }}
-        />
-        <div
-          className="muzzle-flash"
-          style={{
-            position: 'absolute',
-            left: laser.startX - 16,
-            top: laser.startY - 16,
-            width: '32px',
-            height: '32px',
-            background: 'radial-gradient(circle, #ffffff 0%, #ff0000 50%, transparent 70%)',
-            opacity,
-            animation: 'muzzleFlash 0.4s ease-out',
-          }}
-        />
-      </>
-    );
-  };
-
-  const startMusic = () => {
-    if (selectedSong.id === 1 && soundCloudRef.current) {
-      const widget = (window as any).SC.Widget(soundCloudRef.current);
-      widget.play();
-    } else if (audioPlayerRef.current) {
-      audioPlayerRef.current.audio.current.play();
-    }
-  };
-
-  const stopMusic = () => {
-    if (selectedSong.id === 1 && soundCloudRef.current) {
-      const widget = (window as any).SC.Widget(soundCloudRef.current);
-      widget.pause();
-    } else if (audioPlayerRef.current) {
-      audioPlayerRef.current.audio.current.pause();
-    }
-  };
-
   const startGame = () => {
+    console.log('Game started');
     setScore(0);
     setLives(
       difficulty === 'gabriel' ? 50 :
@@ -473,187 +436,20 @@ const Game: React.FC = () => {
     startMusic();
   };
 
-  const resetGame = () => {
-    setGameStarted(false);
-    setScore(0);
-    setLives(
-      difficulty === 'gabriel' ? 50 :
-      difficulty === 'easy' ? 10 :
-      difficulty === 'normal' ? 3 :
-      1
-    );
-    setGameOver(false);
-    setTargets([]);
-    setPowerUps([]);
-    setCombo(0);
-    stopMusic();
+  const stopMusic = () => {
+    if (audioPlayerRef.current) {
+      audioPlayerRef.current.audio.current.pause();
+    }
   };
 
-  useEffect(() => {
-    if (gameStarted && !gameOver) {
-      const movementInterval = setInterval(() => {
-        setTargets((prevTargets) => {
-          const updatedTargets = prevTargets.map((target) => {
-            let { x, y, dx, dy } = target;
-
-            x += dx;
-            y += dy;
-
-            if (x < 0 || x > gameWidth - target.size) {
-              dx = -dx;
-              x = x < 0 ? 0 : gameWidth - target.size;
-            }
-            if (y < 0 || y > gameHeight - target.size) {
-              dy = -dy;
-              y = y < 0 ? 0 : gameHeight - target.size;
-            }
-
-            return {
-              ...target,
-              x,
-              y,
-              dx,
-              dy,
-              rotation: (target.rotation + targetRotationSpeed) % 360,
-            };
-          });
-
-          const expiredTargets = updatedTargets.filter(
-            (target) => Date.now() - target.spawnTime > 45000
-          );
-
-          if (expiredTargets.length > 0) {
-            updatedTargets.forEach((target) => {
-              if (expiredTargets.find((et) => et.id === target.id)) {
-                target.isPopping = true;
-              }
-            });
-
-            setTimeout(() => {
-              setTargets((current) =>
-                current.filter((t) => !expiredTargets.find((et) => et.id === t.id))
-              );
-
-              setLives((prevLives) => {
-                const newLives = prevLives - expiredTargets.length;
-                if (newLives <= 0) {
-                  setGameOver(true);
-                  setGameStarted(false);
-                  stopMusic();
-                }
-                return Math.max(newLives, 0);
-              });
-            }, 300);
-          }
-
-          return updatedTargets;
-        });
-
-        setPowerUps((prevPowerUps) => {
-          const updatedPowerUps = prevPowerUps.map((powerUp) => {
-            let { x, y, dx, dy } = powerUp;
-
-            x += dx;
-            y += dy;
-
-            if (x < 0 || x > gameWidth - targetSize) {
-              dx = -dx;
-              x = x < 0 ? 0 : gameWidth - targetSize;
-            }
-            if (y < 0 || y > gameHeight - targetSize) {
-              dy = -dy;
-              y = y < 0 ? 0 : gameHeight - targetSize;
-            }
-
-            return { ...powerUp, x, y };
-          });
-
-          const filteredPowerUps = updatedPowerUps.filter(
-            (powerUp) => Date.now() - powerUp.spawnTime <= powerUpDuration
-          );
-
-          return filteredPowerUps;
-        });
-      }, 20);
-
-      const spawnIntervalId = setInterval(() => {
-        if (!gameOver) spawnTarget();
-      }, targetSpawnInterval);
-
-      const powerUpIntervalId = setInterval(() => {
-        if (!gameOver) spawnPowerUp();
-      }, powerUpSpawnInterval);
-
-      return () => {
-        clearInterval(movementInterval);
-        clearInterval(spawnIntervalId);
-        clearInterval(powerUpIntervalId);
-      };
+  const startMusic = () => {
+    if (audioPlayerRef.current) {
+      audioPlayerRef.current.audio.current.play();
     }
-  }, [gameStarted, gameOver]);
+  };
 
   return (
-    <div className="flex-container">
-      <h1 className="text-5xl font-extrabold mb-4 text-white">Gabriel's Game</h1>
-      <h2 className="text-xl text-gray-400 mb-6">Created by Dakota Lock for Gabriel</h2>
-
-      <button
-        className="instructions-button mb-4"
-        onClick={() => setShowInstructions(!showInstructions)}
-      >
-        Instructions
-      </button>
-
-      {showInstructions && (
-        <div className="instructions-modal">
-          <h3>How to Play</h3>
-          <ul>
-            <li>Click on the moving targets to score points.</li>
-            <li>If a target despawns without being clicked, you lose a life.</li>
-            <li>Use power-ups to gain advantages or face penalties.</li>
-          </ul>
-          <h3>Power-Ups</h3>
-          <ul>
-            <li><strong>+</strong>: Extra life</li>
-            <li><strong>❄️</strong>: Freeze targets for 5 seconds</li>
-            <li><strong>+10</strong>: Gain 10 points</li>
-            <li><strong>⚡️</strong>: Destroy all targets and gain points</li>
-            <li><strong>🛡️</strong>: Destroy half the targets, gain points, and gain 2 lives</li>
-            <li><strong>🧙‍♀️</strong>: Lose a life</li>
-          </ul>
-          <button
-            className="close-instructions-button"
-            onClick={() => setShowInstructions(false)}
-          >
-            Close
-          </button>
-        </div>
-      )}
-
-      <div className="hidden">
-        {selectedSong.id === 1 ? (
-          <iframe
-            ref={soundCloudRef}
-            width="0"
-            height="0"
-            scrolling="no"
-            frameBorder="no"
-            allow="autoplay"
-            src={`https://w.soundcloud.com/player/?url=${encodeURIComponent(selectedSong.src)}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true`}
-          ></iframe>
-        ) : (
-          <AudioPlayer
-            ref={audioPlayerRef}
-            src={selectedSong.src}
-            autoPlay={false}
-            loop={true}
-            volume={0.5}
-            onPlay={() => setIsPlaying(true)}
-            onPause={() => setIsPlaying(false)}
-          />
-        )}
-      </div>
-
+    <GameContainer>
       <div
         ref={gameAreaRef}
         className="game-area"
@@ -663,138 +459,94 @@ const Game: React.FC = () => {
         {targets.map((target) => (
           <div
             key={target.id}
-            className={`target ${target.isPopping ? 'popping' : ''}`}
+            className={`target ${target.type}`}
             style={{
-              position: 'absolute',
-              left: `${target.x}px`,
-              top: `${target.y}px`,
-              width: `${target.size}px`,
-              height: `${target.size}px`,
-              backgroundColor: target.type === 'slime' ? '#66CCFF' : target.type === 'mini' ? '#FF66CC' : target.color,
-              borderRadius: target.type === 'slime' || target.type === 'mini' ? '50%' : '10%',
+              left: target.x,
+              top: target.y,
+              width: target.size,
+              height: target.size,
+              backgroundColor: target.color,
               transform: `rotate(${target.rotation}deg)`,
-              boxShadow: `0 0 10px ${target.color}`,
+              opacity: target.isPopping ? 0 : 1,
+              transition: target.isPopping ? 'opacity 0.3s' : 'none',
             }}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleTargetClick(target.id, e);
-            }}
+            onClick={(e) => handleTargetClick(target.id, e)}
           />
         ))}
-
         {powerUps.map((powerUp) => (
           <div
             key={powerUp.id}
-            className={`power-up power-up-${powerUp.type}`}
+            className={`power-up ${powerUp.type}`}
+            style={{
+              left: powerUp.x,
+              top: powerUp.y,
+              width: targetSize,
+              height: targetSize,
+            }}
+            onClick={(e) => handlePowerUpClick(powerUp.id, e)}
+          />
+        ))}
+        {laser && (
+          <div
+            className="laser"
             style={{
               position: 'absolute',
-              left: `${powerUp.x}px`,
-              top: `${powerUp.y}px`,
-              backgroundColor: powerUp.type === 'time-freeze' ? 'black' : undefined,
+              left: laser.startX,
+              top: laser.startY,
+              width: Math.sqrt(Math.pow(laser.endX - laser.startX, 2) + Math.pow(laser.endY - laser.startY, 2)),
+              height: 2,
+              transform: `rotate(${Math.atan2(laser.endY - laser.startY, laser.endX - laser.startX)}rad)`,
+              transformOrigin: '0 0',
+              backgroundColor: 'red',
+              transition: 'opacity 0.3s',
+              opacity: Date.now() - laser.timestamp < 300 ? 1 : 0,
             }}
-            onClick={(e) => {
-              e.stopPropagation();
-              handlePowerUpClick(powerUp.id, e);
-            }}
-          >
-            {powerUp.type === 'extra-life' ? '+' :
-             powerUp.type === 'time-freeze' ? '❄️' :
-             powerUp.type === 'double-points' ? '+10' :
-             powerUp.type === 'skull' ? '🧙‍♀️' :
-             powerUp.type === 'lightning' ? '⚡️' : '🛡️'}
-          </div>
-        ))}
-
-        <div
-          className="crosshair"
-          style={{
-            position: 'absolute',
-            left: `${mousePosition.x - 6}px`,
-            top: `${mousePosition.y - 6}px`,
-          }}
-        />
-        {renderLaser()}
-      </div>
-
-      <div className="score-display mt-4">
-        <div className="text-xl text-white">Score: {score}</div>
-        <div className="text-xl text-white">Lives: {lives}</div>
-        <div className="text-xl text-white">Combo: x{combo}</div>
-      </div>
-
-      <div className="mt-4">
-        {!gameStarted && !gameOver && (
-          <div className="flex flex-col items-center space-y-4">
-            <button
-              className="game-button"
-              onClick={startGame}
-            >
-              Start Game
-            </button>
-            <div className="flex space-x-4">
-              <button
-                className={`difficulty-button ${difficulty === 'gabriel' ? 'active' : ''}`}
-                onClick={() => setDifficulty('gabriel')}
-              >
-                Gabriel Mode
-              </button>
-              <button
-                className={`difficulty-button ${difficulty === 'easy' ? 'active' : ''}`}
-                onClick={() => setDifficulty('easy')}
-              >
-                Easy
-              </button>
-              <button
-                className={`difficulty-button ${difficulty === 'normal' ? 'active' : ''}`}
-                onClick={() => setDifficulty('normal')}
-              >
-                Normal
-              </button>
-              <button
-                className={`difficulty-button ${difficulty === 'hard' ? 'active' : ''}`}
-                onClick={() => setDifficulty('hard')}
-              >
-                Hard
-              </button>
-            </div>
-          </div>
-        )}
-        {gameOver && (
-          <div className="game-over">
-            <p className="text-3xl font-bold text-red-500">Game Over!</p>
-            <div className="mt-4 flex justify-center space-x-4">
-              <button
-                className="game-button"
-                onClick={startGame}
-              >
-                Play Again
-              </button>
-              <button
-                className="game-button reset"
-                onClick={resetGame}
-              >
-                Reset Game
-              </button>
-            </div>
-          </div>
+          />
         )}
       </div>
-
-      <div className="mt-4">
+      <div className="game-controls">
+        <button onClick={startGame} disabled={gameStarted}>
+          Start Game
+        </button>
         <select
-          value={selectedSong.id.toString()}
-          onChange={(e) => {
-            const selectedId = parseInt(e.target.value);
-            setSelectedSong(songs.find((song) => song.id === selectedId) || songs[0]);
-          }}
-          className="song-selector"
+          value={difficulty}
+          onChange={(e) => setDifficulty(e.target.value as 'gabriel' | 'easy' | 'normal' | 'hard')}
+        >
+          <option value="gabriel">Gabriel</option>
+          <option value="easy">Easy</option>
+          <option value="normal">Normal</option>
+          <option value="hard">Hard</option>
+        </select>
+        <button onClick={() => setShowInstructions(!showInstructions)}>
+          {showInstructions ? 'Hide Instructions' : 'Show Instructions'}
+        </button>
+        {showInstructions && (
+          <div className="instructions">
+            <p>Click on the targets to score points. Avoid missing targets to keep your lives.</p>
+            <p>Collect power-ups for special abilities.</p>
+          </div>
+        )}
+      </div>
+      <div className="audio-player">
+        <AudioPlayer
+          ref={audioPlayerRef}
+          autoPlay={false}
+          src={selectedSong.src}
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+        />
+        <select
+          value={selectedSong.id}
+          onChange={(e) => handleSongChange(Number(e.target.value))}
         >
           {songs.map((song) => (
-            <option key={song.id} value={song.id.toString()}>{song.name}</option>
+            <option key={song.id} value={song.id}>
+              {song.name}
+            </option>
           ))}
         </select>
       </div>
-    </div>
+    </GameContainer>
   );
 };
 
