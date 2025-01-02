@@ -27,17 +27,19 @@ interface PowerUp {
   id: number;
   type: PowerUpType;
   spawnTime: number;
+  animationState?: {
+    active: boolean;
+  };
 }
 
 const Game: React.FC = () => {
   const [score, setScore] = useState<number>(0);
-  const [lives, setLives] = useState<number>(0);
+  const [lives, setLives] = useState<number>(3);
   const [gameOver, setGameOver] = useState<boolean>(false);
   const [gameStarted, setGameStarted] = useState<boolean>(false);
   const [targets, setTargets] = useState<Target[]>([]);
   const [powerUps, setPowerUps] = useState<PowerUp[]>([]);
   const [combo, setCombo] = useState<number>(0);
-  const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [difficulty, setDifficulty] = useState<'gabriel' | 'easy' | 'normal' | 'hard'>('normal');
   const [showInstructions, setShowInstructions] = useState<boolean>(false);
   const [bossSpawnRate, setBossSpawnRate] = useState<number>(0.03);
@@ -283,6 +285,20 @@ const Game: React.FC = () => {
     });
   };
 
+  const handleTargetExpiration = (target: Target) => {
+    // First, set isPopping to true to trigger the animation
+    setTargets((current) =>
+      current.map((t) =>
+        t.id === target.id ? { ...t, isPopping: true } : t
+      )
+    );
+
+    // After the animation duration, remove the target
+    setTimeout(() => {
+      setTargets((current) => current.filter((t) => t.id !== target.id));
+    }, 300); // Match the CSS animation duration
+  };
+
   const handleTargetClick = (id: number, e: MouseEvent<HTMLDivElement>) => {
     if (gameOver) return;
 
@@ -307,11 +323,9 @@ const Game: React.FC = () => {
         const updatedHealth = clickedTarget.health - 1;
 
         if (updatedHealth <= 0) {
-          return prevTargets
-            .map((target) =>
-              target.id === id ? { ...target, isPopping: true, health: 0 } : target
-            )
-            .filter((target) => !(target.id === id && target.isPopping));
+          handleTargetExpiration(clickedTarget);
+          setScore((prevScore) => prevScore + 10);
+          return prevTargets.filter((target) => target.id !== id);
         }
 
         return prevTargets.map((target) =>
@@ -353,9 +367,8 @@ const Game: React.FC = () => {
         ];
       }
 
-      return prevTargets.map((target) =>
-        target.id === id ? { ...target, isPopping: true } : target
-      );
+      handleTargetExpiration(clickedTarget);
+      return prevTargets;
     });
 
     setTimeout(() => {
@@ -379,6 +392,36 @@ const Game: React.FC = () => {
         return prevTargets;
       });
     }, 300);
+  };
+
+  const handleLightningAnimation = (powerUp: PowerUp) => {
+    // Set animationState.active to true to trigger the animation
+    setPowerUps((current) =>
+      current.map((p) =>
+        p.id === powerUp.id ? { ...p, animationState: { active: true } } : p
+      )
+    );
+
+    // After the animation duration, remove the power-up
+    setTimeout(() => {
+      setPowerUps((current) => current.filter((p) => p.id !== powerUp.id));
+    }, 300); // Match the CSS animation duration
+  };
+
+  const renderLightningAnimation = (powerUp: PowerUp) => {
+    return (
+      <div
+        className="lightning-active"
+        style={{
+          position: 'absolute',
+          left: `${powerUp.x}px`,
+          top: `${powerUp.y}px`,
+          width: `${targetSize}px`,
+          height: `${targetSize}px`,
+          zIndex: 1000,
+        }}
+      />
+    );
   };
 
   const handlePowerUpClick = (id: number, e: MouseEvent<HTMLDivElement>) => {
@@ -433,6 +476,7 @@ const Game: React.FC = () => {
         }
         break;
       case 'lightning':
+        handleLightningAnimation(clickedPowerUp);
         setTargets((currentTargets) =>
           currentTargets.map((target) => ({
             ...target,
@@ -538,7 +582,7 @@ const Game: React.FC = () => {
   const startGame = () => {
     setScore(0);
     setLives(
-      difficulty === 'gabriel' ? 50 :
+      difficulty === 'gabriel' ? 50 : // Gabriel mode with 50 lives
       difficulty === 'easy' ? 10 :
       difficulty === 'normal' ? 3 :
       1
@@ -555,7 +599,7 @@ const Game: React.FC = () => {
     setGameStarted(false);
     setScore(0);
     setLives(
-      difficulty === 'gabriel' ? 50 :
+      difficulty === 'gabriel' ? 50 : // Gabriel mode with 50 lives
       difficulty === 'easy' ? 10 :
       difficulty === 'normal' ? 3 :
       1
@@ -601,56 +645,33 @@ const Game: React.FC = () => {
           );
 
           if (expiredTargets.length > 0) {
-            // First set popping animation
-            setTargets(current => 
-              current.map(target => ({
-                ...target,
-                isPopping: expiredTargets.find(et => et.id === target.id) ? true : target.isPopping
-              }))
+            // Trigger the popping animation before filtering
+            setTargets((prev) =>
+              prev.map((t) =>
+                expiredTargets.some((et) => et.id === t.id)
+                  ? { ...t, isPopping: true }
+                  : t
+              )
             );
 
-            // After animation, remove targets and subtract one life per target
+            // Remove the targets after the animation completes
             setTimeout(() => {
-              setTargets(current => current.filter(t => !expiredTargets.find(et => et.id === t.id)));
-              
-              // Subtract one life per expired target
-              setLives(prevLives => {
-                const newLives = Math.max(prevLives - expiredTargets.length, 0);
+              setTargets((current) =>
+                current.filter((t) => !expiredTargets.some((et) => et.id === t.id))
+              );
+
+              // Deduct lives for expired targets
+              setLives((prevLives) => {
+                const newLives = prevLives - expiredTargets.length;
                 if (newLives <= 0) {
                   handleGameOver();
                 }
                 return newLives;
               });
-            }, 300);
+            }, 300); // Match the CSS animation duration
           }
 
           return updatedTargets;
-        });
-
-        setPowerUps((prevPowerUps) => {
-          const updatedPowerUps = prevPowerUps.map((powerUp) => {
-            let { x, y, dx, dy } = powerUp;
-
-            x += dx;
-            y += dy;
-
-            if (x < 0 || x > gameWidth - targetSize) {
-              dx = -dx;
-              x = x < 0 ? 0 : gameWidth - targetSize;
-            }
-            if (y < 0 || y > gameHeight - targetSize) {
-              dy = -dy;
-              y = y < 0 ? 0 : gameHeight - targetSize;
-            }
-
-            return { ...powerUp, x, y };
-          });
-
-          const filteredPowerUps = updatedPowerUps.filter(
-            (powerUp) => Date.now() - powerUp.spawnTime <= powerUpDuration
-          );
-
-          return filteredPowerUps;
         });
       }, 20);
 
@@ -674,12 +695,11 @@ const Game: React.FC = () => {
     if (gameStarted && !gameOver) {
       const bossRateInterval = setInterval(() => {
         setBossSpawnRate((prev) => {
-          // Gradually increase based on score
           const baseRate = 0.03;
           const scoreMultiplier = Math.floor(score / 100);
           return Math.min(baseRate + (scoreMultiplier * 0.02), 0.2);
         });
-      }, 30000); // Check every 30 seconds
+      }, 30000);
 
       return () => clearInterval(bossRateInterval);
     }
@@ -694,7 +714,7 @@ const Game: React.FC = () => {
         if (gameStarted) {
           setTimeout(() => {
             widget.play();
-          }, 100); // Small delay to ensure widget is ready
+          }, 100);
         }
       } catch (error) {
         console.warn('Failed to switch playlist:', error);
@@ -834,26 +854,29 @@ const Game: React.FC = () => {
         {targets.map((target) => renderTarget(target))}
 
         {powerUps.map((powerUp) => (
-          <div
-            key={powerUp.id}
-            className={`power-up power-up-${powerUp.type}`}
-            style={{
-              position: 'absolute',
-              left: `${powerUp.x}px`,
-              top: `${powerUp.y}px`,
-              backgroundColor: powerUp.type === 'time-freeze' ? 'black' : undefined,
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              handlePowerUpClick(powerUp.id, e);
-            }}
-          >
-            {powerUp.type === 'extra-life' ? '+' :
-             powerUp.type === 'time-freeze' ? '❄️' :
-             powerUp.type === 'double-points' ? '+10' :
-             powerUp.type === 'skull' ? '🧙‍♀️' :
-             powerUp.type === 'lightning' ? '⚡️' : '🛡️'}
-          </div>
+          <>
+            <div
+              key={powerUp.id}
+              className={`power-up power-up-${powerUp.type}`}
+              style={{
+                position: 'absolute',
+                left: `${powerUp.x}px`,
+                top: `${powerUp.y}px`,
+                backgroundColor: powerUp.type === 'time-freeze' ? 'black' : undefined,
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handlePowerUpClick(powerUp.id, e);
+              }}
+            >
+              {powerUp.type === 'extra-life' ? '+' :
+               powerUp.type === 'time-freeze' ? '❄️' :
+               powerUp.type === 'double-points' ? '+10' :
+               powerUp.type === 'skull' ? '🧙‍♀️' :
+               powerUp.type === 'lightning' ? '⚡️' : '🛡️'}
+            </div>
+            {powerUp.animationState?.active && renderLightningAnimation(powerUp)}
+          </>
         ))}
 
         <div
