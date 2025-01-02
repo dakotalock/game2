@@ -40,7 +40,7 @@ const Game: React.FC = () => {
   const [targets, setTargets] = useState<Target[]>([]);
   const [powerUps, setPowerUps] = useState<PowerUp[]>([]);
   const [combo, setCombo] = useState<number>(0);
-  const [difficulty, setDifficulty] = useState<'gabriel' | 'easy' | 'normal' | 'hard'>('normal');
+  const [difficulty, setDifficulty] = useState<'kid' | 'easy' | 'normal' | 'hard'>('normal');
   const [showInstructions, setShowInstructions] = useState<boolean>(false);
   const [bossSpawnRate, setBossSpawnRate] = useState<number>(0.03);
   const soundCloudRef = useRef<HTMLIFrameElement>(null);
@@ -790,8 +790,8 @@ const Game: React.FC = () => {
 
   return (
     <div className="flex-container" style={{ padding: '20px', maxHeight: '100vh', overflow: 'hidden' }}>
-      <h1 className="text-5xl font-extrabold mb-4 text-white">Gabriel's Game</h1>
-      <h2 className="text-xl text-gray-400 mb-6">Created by Dakota Lock for Gabriel</h2>
+      <h1 className="text-5xl font-extrabold mb-4 text-white">Sensory Stars</h1>
+      <h2 className="text-xl text-gray-400 mb-6">Created by Dakota Lock</h2>
 
       <button
         className="instructions-button mb-4"
@@ -907,10 +907,10 @@ const Game: React.FC = () => {
             </button>
             <div className="flex space-x-4">
               <button
-                className={`difficulty-button ${difficulty === 'gabriel' ? 'active' : ''}`}
-                onClick={() => setDifficulty('gabriel')}
+                className={`difficulty-button ${difficulty === 'kid' ? 'active' : ''}`}
+                onClick={() => setDifficulty('kid')}
               >
-                Gabriel Mode
+                Kid Mode
               </button>
               <button
                 className={`difficulty-button ${difficulty === 'easy' ? 'active' : ''}`}
