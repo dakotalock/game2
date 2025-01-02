@@ -582,7 +582,7 @@ const Game: React.FC = () => {
   const startGame = () => {
     setScore(0);
     setLives(
-      difficulty === 'gabriel' ? 50 : // Gabriel mode with 50 lives
+      difficulty === 'kid' ? 50 : // Gabriel mode with 50 lives
       difficulty === 'easy' ? 10 :
       difficulty === 'normal' ? 3 :
       1
