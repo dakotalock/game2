@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useRef, MouseEvent } from 'react';
-import AudioPlayer from 'react-h5-audio-player';
-import 'react-h5-audio-player/lib/styles.css';
 import './App.css';
 
 interface Target {
@@ -12,9 +10,11 @@ interface Target {
   color: string;
   rotation: number;
   spawnTime: number;
-  type: 'normal' | 'slime' | 'mini';
+  type: 'normal' | 'slime' | 'mini' | 'boss';
   size: number;
   isPopping?: boolean;
+  health?: number;
+  isImmune?: boolean;
 }
 
 type PowerUpType = 'extra-life' | 'time-freeze' | 'double-points' | 'skull' | 'lightning' | 'lava-shield';
@@ -40,7 +40,7 @@ const Game: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [difficulty, setDifficulty] = useState<'gabriel' | 'easy' | 'normal' | 'hard'>('normal');
   const [showInstructions, setShowInstructions] = useState<boolean>(false);
-  const audioPlayerRef = useRef<any>(null);
+  const [bossSpawnRate, setBossSpawnRate] = useState<number>(0.03);
   const soundCloudRef = useRef<HTMLIFrameElement>(null);
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const targetSize: number = 30;
@@ -50,6 +50,7 @@ const Game: React.FC = () => {
   const targetSpawnInterval: number = 1500 / 2;
   const powerUpSpawnInterval: number = 5000 / 2;
   const powerUpDuration: number = 5000;
+  const targetLifespan: number = 45000;
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const targetRotationSpeed: number = 2;
 
@@ -63,16 +64,61 @@ const Game: React.FC = () => {
 
   const songs = [
     { id: 1, name: 'Lo-Fi Chill Beats', src: 'https://soundcloud.com/oxinym/sets/lofi-beats-royalty-free' },
-    { id: 2, name: 'Song 1', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
-    { id: 3, name: 'Song 2', src: 'https://files.freemusicarchive.org/storage-freemusicarchive-org/music/ccCommunity/Chad_Crouch/Arps/Chad_Crouch_-_Algorithms.mp3' },
-    { id: 4, name: 'Song 3', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3' },
-    { id: 5, name: 'Song 4', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3' },
-    { id: 6, name: 'Song 5', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3' },
+    { id: 2, name: 'Relaxing Music', src: 'https://soundcloud.com/relaxingmusicok' },
+    { id: 3, name: 'Royalty Free Ambient Music', src: 'https://soundcloud.com/royalty-free-ambient' },
+    { id: 4, name: 'Soothing Relaxation', src: 'https://soundcloud.com/soothingrelaxation' }
   ];
 
   const [selectedSong, setSelectedSong] = useState(songs[0]);
 
-  // Calculate responsive dimensions
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://w.soundcloud.com/player/api.js';
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  const startMusic = () => {
+    if (soundCloudRef.current) {
+      try {
+        const widget = (window as any).SC.Widget(soundCloudRef.current);
+        widget.play();
+      } catch (error) {
+        console.warn('Failed to start music:', error);
+      }
+    }
+  };
+
+  const stopMusic = () => {
+    if (soundCloudRef.current) {
+      try {
+        const widget = (window as any).SC.Widget(soundCloudRef.current);
+        widget.pause();
+      } catch (error) {
+        console.warn('Failed to stop music:', error);
+      }
+    }
+  };
+
+  const handleGameOver = () => {
+    setGameOver(true);
+    setGameStarted(false);
+    stopMusic();
+  };
+
+  const getRandomColor = (): string => {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+  };
+
   useEffect(() => {
     const updateDimensions = () => {
       const maxWidth = 600;
@@ -91,41 +137,35 @@ const Game: React.FC = () => {
     return () => window.removeEventListener('resize', updateDimensions);
   }, []);
 
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://w.soundcloud.com/player/api.js';
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
+  const spawnBoss = () => {
+    const x = Math.random() * (gameWidth - targetSize * 2);
+    const y = Math.random() * (gameHeight - targetSize * 2);
+    const dx = (Math.random() - 0.5) * (targetSpeed * 0.75);
+    const dy = (Math.random() - 0.5) * (targetSpeed * 0.75);
+    const newBoss: Target = {
+      x,
+      y,
+      dx,
+      dy,
+      id: Date.now() + Math.random(),
+      color: '#FFD700',
+      rotation: 0,
+      spawnTime: Date.now(),
+      type: 'boss',
+      size: targetSize * 2,
+      health: 5,
+      isImmune: true,
     };
-  }, []);
-
-  useEffect(() => {
-    if (gameStarted) {
-      stopMusic();
-      startMusic();
-    }
-  }, [selectedSong]);
-
-  const handleSongChange = (id: number) => {
-    const song = songs.find((song) => song.id === id);
-    if (song) {
-      setSelectedSong(song);
-    }
-  };
-
-  const getRandomColor = (): string => {
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
+    setTargets((prevTargets) => [...prevTargets, newBoss]);
   };
 
   const spawnTarget = () => {
+    const shouldSpawnBoss = Math.random() < bossSpawnRate;
+    if (shouldSpawnBoss) {
+      spawnBoss();
+      return;
+    }
+
     const x = Math.random() * (gameWidth - targetSize);
     const y = Math.random() * (gameHeight - targetSize);
     const dx = (Math.random() - 0.5) * targetSpeed;
@@ -145,9 +185,6 @@ const Game: React.FC = () => {
         break;
       case 'mini':
         size = targetSize / 2;
-        break;
-      case 'normal':
-        size = targetSize;
         break;
       default:
         size = targetSize;
@@ -231,9 +268,7 @@ const Game: React.FC = () => {
       setLives((prevLives) => {
         const newLives = prevLives - 1;
         if (newLives <= 0) {
-          setGameOver(true);
-          setGameStarted(false);
-          stopMusic();
+          handleGameOver();
         }
         return newLives;
       });
@@ -263,52 +298,86 @@ const Game: React.FC = () => {
       timestamp: Date.now(),
     });
 
-    setTargets((prevTargets) =>
-      prevTargets.map((target) =>
+    setTargets((prevTargets) => {
+      const clickedTarget = prevTargets.find((target) => target.id === id);
+
+      if (!clickedTarget) return prevTargets;
+
+      if (clickedTarget.type === 'boss' && clickedTarget.health) {
+        const updatedHealth = clickedTarget.health - 1;
+
+        if (updatedHealth <= 0) {
+          return prevTargets
+            .map((target) =>
+              target.id === id ? { ...target, isPopping: true, health: 0 } : target
+            )
+            .filter((target) => !(target.id === id && target.isPopping));
+        }
+
+        return prevTargets.map((target) =>
+          target.id === id ? { ...target, health: updatedHealth } : target
+        );
+      }
+
+      if (clickedTarget.type === 'slime') {
+        const miniTarget1: Target = {
+          x: clickedTarget.x,
+          y: clickedTarget.y,
+          dx: (Math.random() - 0.5) * targetSpeed,
+          dy: (Math.random() - 0.5) * targetSpeed,
+          id: Date.now() + Math.random(),
+          color: '#FF66CC',
+          rotation: 0,
+          spawnTime: Date.now(),
+          type: 'mini',
+          size: targetSize / 2,
+        };
+
+        const miniTarget2: Target = {
+          x: clickedTarget.x,
+          y: clickedTarget.y,
+          dx: (Math.random() - 0.5) * targetSpeed,
+          dy: (Math.random() - 0.5) * targetSpeed,
+          id: Date.now() + Math.random(),
+          color: '#FF66CC',
+          rotation: 0,
+          spawnTime: Date.now(),
+          type: 'mini',
+          size: targetSize / 2,
+        };
+
+        return [
+          ...prevTargets.filter((target) => target.id !== id),
+          miniTarget1,
+          miniTarget2,
+        ];
+      }
+
+      return prevTargets.map((target) =>
         target.id === id ? { ...target, isPopping: true } : target
-      )
-    );
+      );
+    });
 
     setTimeout(() => {
       setTargets((prevTargets) => {
-        const updatedTargets = prevTargets.filter((target) => target.id !== id);
         const clickedTarget = prevTargets.find((target) => target.id === id);
-        if (clickedTarget) {
-          switch (clickedTarget.type) {
-            case 'slime':
-              const newMiniTarget1: Target = {
-                x: clickedTarget.x,
-                y: clickedTarget.y,
-                dx: (Math.random() - 0.5) * targetSpeed,
-                dy: (Math.random() - 0.5) * targetSpeed,
-                id: Date.now() + Math.random(),
-                color: getRandomColor(),
-                rotation: 0,
-                spawnTime: Date.now(),
-                type: 'mini',
-                size: targetSize / 2,
-              };
-              const newMiniTarget2: Target = {
-                x: clickedTarget.x,
-                y: clickedTarget.y,
-                dx: (Math.random() - 0.5) * targetSpeed,
-                dy: (Math.random() - 0.5) * targetSpeed,
-                id: Date.now() + Math.random(),
-                color: getRandomColor(),
-                rotation: 0,
-                spawnTime: Date.now(),
-                type: 'mini',
-                size: targetSize / 2,
-              };
-              return [...updatedTargets, newMiniTarget1, newMiniTarget2];
-            default:
-              return updatedTargets;
-          }
+
+        if (!clickedTarget) return prevTargets;
+
+        if (clickedTarget.type === 'boss' && clickedTarget.health === 0) {
+          setScore((prevScore) => prevScore + 10);
+          return prevTargets.filter((target) => target.id !== id);
         }
-        return updatedTargets;
+
+        if (clickedTarget.isPopping) {
+          const updatedTargets = prevTargets.filter((target) => target.id !== id);
+          setScore((prevScore) => prevScore + (combo > 5 ? 2 : 1));
+          setCombo((prevCombo) => prevCombo + 1);
+          return updatedTargets;
+        }
+
+        return prevTargets;
       });
-      setScore((prevScore) => prevScore + (combo > 5 ? 2 : 1));
-      setCombo((prevCombo) => prevCombo + 1);
     }, 300);
   };
 
@@ -360,33 +429,41 @@ const Game: React.FC = () => {
       case 'skull':
         setLives((prevLives) => Math.max(prevLives - 1, 0));
         if (lives <= 1) {
-          setGameOver(true);
-          setGameStarted(false);
-          stopMusic();
+          handleGameOver();
         }
         break;
       case 'lightning':
         setTargets((currentTargets) =>
-          currentTargets.map((target) => ({ ...target, isPopping: true }))
+          currentTargets.map((target) => ({
+            ...target,
+            isPopping: target.isImmune ? false : true,
+          }))
         );
         setTimeout(() => {
           setTargets((currentTargets) => {
-            setScore((prevScore) => prevScore + currentTargets.length);
-            return [];
+            const nonImmuneTargets = currentTargets.filter((t) => !t.isImmune);
+            setScore((prevScore) => prevScore + nonImmuneTargets.length);
+            return currentTargets.filter((t) => t.isImmune);
           });
         }, 300);
         break;
       case 'lava-shield':
-        const halfLength = Math.ceil(targets.length / 2);
+        const vulnerableTargets = targets.filter((t) => !t.isImmune);
+        const halfLength = Math.ceil(vulnerableTargets.length / 2);
         setTargets((prevTargets) =>
-          prevTargets.map((target, index) =>
-            index < halfLength ? { ...target, isPopping: true } : target
-          )
+          prevTargets.map((target) => {
+            if (target.isImmune) return target;
+            const targetIndex = vulnerableTargets.indexOf(target);
+            return targetIndex < halfLength ? { ...target, isPopping: true } : target;
+          })
         );
         setTimeout(() => {
-          setTargets((prevTargets) => prevTargets.filter((_, index) => index >= halfLength));
-          setScore((prevScore) => prevScore + halfLength);
-          setLives((prevLives) => prevLives + 2);
+          setTargets((prevTargets) => {
+            const remainingTargets = prevTargets.filter((t) => !t.isPopping);
+            setScore((prevScore) => prevScore + (prevTargets.length - remainingTargets.length));
+            setLives((prevLives) => prevLives + 2);
+            return remainingTargets;
+          });
         }, 300);
         break;
       default:
@@ -458,24 +535,6 @@ const Game: React.FC = () => {
     );
   };
 
-  const startMusic = () => {
-    if (selectedSong.id === 1 && soundCloudRef.current) {
-      const widget = (window as any).SC.Widget(soundCloudRef.current);
-      widget.play();
-    } else if (audioPlayerRef.current) {
-      audioPlayerRef.current.audio.current.play();
-    }
-  };
-
-  const stopMusic = () => {
-    if (selectedSong.id === 1 && soundCloudRef.current) {
-      const widget = (window as any).SC.Widget(soundCloudRef.current);
-      widget.pause();
-    } else if (audioPlayerRef.current) {
-      audioPlayerRef.current.audio.current.pause();
-    }
-  };
-
   const startGame = () => {
     setScore(0);
     setLives(
@@ -538,29 +597,29 @@ const Game: React.FC = () => {
           });
 
           const expiredTargets = updatedTargets.filter(
-            (target) => Date.now() - target.spawnTime > 45000
+            (target) => Date.now() - target.spawnTime > targetLifespan
           );
 
           if (expiredTargets.length > 0) {
-            updatedTargets.forEach((target) => {
-              if (expiredTargets.find((et) => et.id === target.id)) {
-                target.isPopping = true;
-              }
-            });
+            // First set popping animation
+            setTargets(current => 
+              current.map(target => ({
+                ...target,
+                isPopping: expiredTargets.find(et => et.id === target.id) ? true : target.isPopping
+              }))
+            );
 
+            // After animation, remove targets and subtract one life per target
             setTimeout(() => {
-              setTargets((current) =>
-                current.filter((t) => !expiredTargets.find((et) => et.id === t.id))
-              );
-
-              setLives((prevLives) => {
-                const newLives = prevLives - expiredTargets.length;
+              setTargets(current => current.filter(t => !expiredTargets.find(et => et.id === t.id)));
+              
+              // Subtract one life per expired target
+              setLives(prevLives => {
+                const newLives = Math.max(prevLives - expiredTargets.length, 0);
                 if (newLives <= 0) {
-                  setGameOver(true);
-                  setGameStarted(false);
-                  stopMusic();
+                  handleGameOver();
                 }
-                return Math.max(newLives, 0);
+                return newLives;
               });
             }, 300);
           }
@@ -611,6 +670,104 @@ const Game: React.FC = () => {
     }
   }, [gameStarted, gameOver]);
 
+  useEffect(() => {
+    if (gameStarted && !gameOver) {
+      const bossRateInterval = setInterval(() => {
+        setBossSpawnRate((prev) => {
+          // Gradually increase based on score
+          const baseRate = 0.03;
+          const scoreMultiplier = Math.floor(score / 100);
+          return Math.min(baseRate + (scoreMultiplier * 0.02), 0.2);
+        });
+      }, 30000); // Check every 30 seconds
+
+      return () => clearInterval(bossRateInterval);
+    }
+  }, [gameStarted, gameOver, score]);
+
+  useEffect(() => {
+    if (soundCloudRef.current) {
+      try {
+        const widget = (window as any).SC.Widget(soundCloudRef.current);
+        widget.pause();
+        soundCloudRef.current.src = `https://w.soundcloud.com/player/?url=${encodeURIComponent(selectedSong.src)}&color=%23ff5500&auto_play=${gameStarted}&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true`;
+        if (gameStarted) {
+          setTimeout(() => {
+            widget.play();
+          }, 100); // Small delay to ensure widget is ready
+        }
+      } catch (error) {
+        console.warn('Failed to switch playlist:', error);
+      }
+    }
+  }, [selectedSong]);
+
+  const renderTarget = (target: Target) => {
+    if (target.type === 'boss') {
+      return (
+        <div
+          key={target.id}
+          className={`target ${target.isPopping ? 'popping' : ''}`}
+          style={{
+            position: 'absolute',
+            left: `${target.x}px`,
+            top: `${target.y}px`,
+            width: `${target.size}px`,
+            height: `${target.size}px`,
+            transform: `rotate(${target.rotation}deg)`,
+            cursor: 'pointer',
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleTargetClick(target.id, e);
+          }}
+        >
+          <svg width="100%" height="100%" viewBox="0 0 100 100">
+            <path
+              d="M50 0 L61 35 L97 35 L68 57 L79 91 L50 70 L21 91 L32 57 L3 35 L39 35 Z"
+              fill="#FFD700"
+              stroke="#FFA500"
+              strokeWidth="2"
+            />
+            <text
+              x="50"
+              y="55"
+              textAnchor="middle"
+              fill="black"
+              fontSize="30"
+              fontWeight="bold"
+              style={{ userSelect: 'none' }}
+            >
+              {target.health}
+            </text>
+          </svg>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        key={target.id}
+        className={`target ${target.isPopping ? 'popping' : ''}`}
+        style={{
+          position: 'absolute',
+          left: `${target.x}px`,
+          top: `${target.y}px`,
+          width: `${target.size}px`,
+          height: `${target.size}px`,
+          backgroundColor: target.type === 'slime' ? '#66CCFF' : target.type === 'mini' ? '#FF66CC' : target.color,
+          borderRadius: target.type === 'slime' || target.type === 'mini' ? '50%' : '10%',
+          transform: `rotate(${target.rotation}deg)`,
+          boxShadow: `0 0 10px ${target.color}`,
+        }}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleTargetClick(target.id, e);
+        }}
+      />
+    );
+  };
+
   return (
     <div className="flex-container" style={{ padding: '20px', maxHeight: '100vh', overflow: 'hidden' }}>
       <h1 className="text-5xl font-extrabold mb-4 text-white">Gabriel's Game</h1>
@@ -650,27 +807,15 @@ const Game: React.FC = () => {
       )}
 
       <div className="hidden">
-        {selectedSong.id === 1 ? (
-          <iframe
-            ref={soundCloudRef}
-            width="0"
-            height="0"
-            scrolling="no"
-            frameBorder="no"
-            allow="autoplay"
-            src={`https://w.soundcloud.com/player/?url=${encodeURIComponent(selectedSong.src)}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true`}
-          ></iframe>
-        ) : (
-          <AudioPlayer
-            ref={audioPlayerRef}
-            src={selectedSong.src}
-            autoPlay={false}
-            loop={true}
-            volume={0.5}
-            onPlay={() => setIsPlaying(true)}
-            onPause={() => setIsPlaying(false)}
-          />
-        )}
+        <iframe
+          ref={soundCloudRef}
+          width="0"
+          height="0"
+          scrolling="no"
+          frameBorder="no"
+          allow="autoplay"
+          src={`https://w.soundcloud.com/player/?url=${encodeURIComponent(selectedSong.src)}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true`}
+        ></iframe>
       </div>
 
       <div
@@ -681,32 +826,12 @@ const Game: React.FC = () => {
           height: gameHeight,
           position: 'relative',
           margin: '0 auto',
-          touchAction: 'none', // Prevent default touch behaviors
+          touchAction: 'none',
         }}
         onMouseMove={handleMouseMove}
         onClick={handleMouseClick}
       >
-        {targets.map((target) => (
-          <div
-            key={target.id}
-            className={`target ${target.isPopping ? 'popping' : ''}`}
-            style={{
-              position: 'absolute',
-              left: `${target.x}px`,
-              top: `${target.y}px`,
-              width: `${target.size}px`,
-              height: `${target.size}px`,
-              backgroundColor: target.type === 'slime' ? '#66CCFF' : target.type === 'mini' ? '#FF66CC' : target.color,
-              borderRadius: target.type === 'slime' || target.type === 'mini' ? '50%' : '10%',
-              transform: `rotate(${target.rotation}deg)`,
-              boxShadow: `0 0 10px ${target.color}`,
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleTargetClick(target.id, e);
-            }}
-          />
-        ))}
+        {targets.map((target) => renderTarget(target))}
 
         {powerUps.map((powerUp) => (
           <div
